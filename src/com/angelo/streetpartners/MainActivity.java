@@ -1,4 +1,4 @@
-package com.angelo.streetpartners;
+package com.angelo.streethackfight;
 
 import android.app.Activity;
 import android.os.Bundle;
