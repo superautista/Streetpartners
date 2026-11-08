@@ -1,105 +1,120 @@
 package com.angelo.streetpartners;
 
-import android.Manifest;
 import android.app.Activity;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationManager;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
+import android.widget.ProgressBar;
+import android.widget.TextView;
+import java.util.Random;
 
 public class MainActivity extends Activity {
 
-    private EditText editTextNotes;
-    private Button btnPanic;
-    private LocationManager locationManager;
+    private int hpJogador = 100;
+    private int hpInimigo = 100;
+    private boolean defendendo = false;
+
+    private ProgressBar barraJogador, barraInimigo;
+    private TextView txtJogador, txtInimigo, txtLog;
+    private Button btnSoco, btnChute, btnDefender;
+    private Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editTextNotes = findViewById(R.id.editTextNotes);
-        btnPanic = findViewById(R.id.btnPanic);
-        
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        barraJogador = findViewById(R.id.barraJogador);
+        barraInimigo = findViewById(R.id.barraInimigo);
+        txtJogador = findViewById(R.id.txtJogador);
+        txtInimigo = findViewById(R.id.txtInimigo);
+        txtLog = findViewById(R.id.txtLog);
 
-        if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED ||
-            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            
-            requestPermissions(new String[]{
-                Manifest.permission.SEND_SMS, 
-                Manifest.permission.ACCESS_FINE_LOCATION,
-                Manifest.permission.ACCESS_COARSE_LOCATION
-            }, 1);
-        }
+        btnSoco = findViewById(R.id.btnSoco);
+        btnChute = findViewById(R.id.btnChute);
+        btnDefender = findViewById(R.id.btnDefender);
 
-        btnPanic.setOnClickListener(new View.OnClickListener() {
+        btnSoco.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                String textoDigitado = editTextNotes.getText().toString();
-                
-                if (textoDigitado.toUpperCase().contains("AJUDA")) {
-                    pegarLocalizacaoEDisparar();
-                } else {
-                    Toast.makeText(MainActivity.this, "Nota salva.", Toast.LENGTH_SHORT).show();
-                    editTextNotes.setText(""); 
-                }
+                atacar(15, "Soco");
+            }
+        });
+
+        btnChute.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                atacar(25, "Chute");
+            }
+        });
+
+        btnDefender.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                defendendo = true;
+                txtLog.setText("Você se defendeu! O próximo ataque será bloqueado.");
+                turnoInimigo();
             }
         });
     }
 
-    private void pegarLocalizacaoEDisparar() {
-        String linkMaps = " (Localizacao indisponivel)";
+    private void atacar(int dano, String golpe) {
+        // Adiciona um pequeno fator aleatório no dano (para não ser sempre igual)
+        int danoFinal = dano + random.nextInt(10);
+        hpInimigo -= danoFinal;
+        if (hpInimigo < 0) hpInimigo = 0;
         
-        try {
-            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
-                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
-                
-                if (location == null) {
-                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
-                }
-                
-                if (location != null) {
-                    linkMaps = " Minha localizacao: https://maps.google.com/?q=" + location.getLatitude() + "," + location.getLongitude();
-                }
-            }
-        } catch (Exception e) {
-            linkMaps = " (Erro ao pegar GPS)";
+        txtLog.setText("Você usou " + golpe + " e causou " + danoFinal + " de dano!");
+        atualizarUI();
+
+        if (hpInimigo <= 0) {
+            vencer();
+            return;
         }
-        
-        dispararAlerta(linkMaps);
+        turnoInimigo();
     }
 
-    private void dispararAlerta(String localizacao) {
-        String mensagemSocorro = "SOS! Estou sofrendo agressao/bullying. Preciso de ajuda." + localizacao;
-        
-        Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
-        whatsappIntent.setType("text/plain");
-        whatsappIntent.putExtra(Intent.EXTRA_TEXT, mensagemSocorro);
-        whatsappIntent.setPackage("com.whatsapp");
-        
-        try {
-            startActivity(whatsappIntent);
-            Toast.makeText(this, "ALERTA ENVIADO PARA O WHATSAPP!", Toast.LENGTH_LONG).show();
-            editTextNotes.setText(""); 
-        } catch (Exception e) {
-            try {
-                Intent smsIntent = new Intent(Intent.ACTION_VIEW);
-                smsIntent.setData(Uri.parse("smsto:")); 
-                smsIntent.putExtra("sms_body", mensagemSocorro);
-                startActivity(smsIntent);
-                Toast.makeText(this, "ALERTA ENVIADO POR SMS!", Toast.LENGTH_LONG).show();
-                editTextNotes.setText(""); 
-            } catch (Exception e2) {
-                Toast.makeText(this, "Erro ao abrir mensageiro.", Toast.LENGTH_SHORT).show();
-            }
+    private void turnoInimigo() {
+        // Inimigo ataca de volta
+        if (defendendo) {
+            int danoBloqueado = random.nextInt(10); // Dano mínimo no bloqueio
+            hpJogador -= danoBloqueado;
+            txtLog.append("\nInimigo atacou, mas você bloqueou! Perdeu só " + danoBloqueado + " HP.");
+            defendendo = false;
+        } else {
+            int danoInimigo = 10 + random.nextInt(15); // Dano entre 10 e 24
+            hpJogador -= danoInimigo;
+            txtLog.append("\nInimigo atacou e causou " + danoInimigo + " de dano!");
         }
+
+        if (hpJogador < 0) hpJogador = 0;
+        atualizarUI();
+
+        if (hpJogador <= 0) {
+            perder();
+        }
+    }
+
+    private void atualizarUI() {
+        barraJogador.setProgress(hpJogador);
+        barraInimigo.setProgress(hpInimigo);
+        txtJogador.setText("VOCÊ (" + hpJogador + "/100 HP)");
+        txtInimigo.setText("INIMIGO (" + hpInimigo + "/100 HP)");
+    }
+
+    private void vencer() {
+        txtLog.setText("K.O.! VOCÊ VENCEU A LUTA! 🏆");
+        desativarBotoes();
+    }
+
+    private void perder() {
+        txtLog.setText("VOCÊ FOI NOCAUTEADO... GAME OVER. 💀");
+        desativarBotoes();
+    }
+
+    private void desativarBotoes() {
+        btnSoco.setEnabled(false);
+        btnChute.setEnabled(false);
+        btnDefender.setEnabled(false);
     }
 }
