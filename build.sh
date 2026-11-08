@@ -17,14 +17,13 @@ $BUILD_TOOLS/d8 --lib $PLATFORM/android.jar --output . obj/com/angelo/streetpart
 
 echo "4. Empacotando..."
 zip -uj base.apk classes.dex
-
 echo "5. Alinhando..."
-$BUILD_TOOLS/zipalign -f 4 base.apk aligned.apk
+$BUILD_TOOLS/zipalign -p -f 4 base.apk aligned.apk
 
 echo "6. Criando chave de assinatura..."
 keytool -genkey -v -keystore my-release-key.jks -keyalg RSA -keysize 2048 -validity 10000 -alias my-alias -storepass 123456 -keypass 123456 -dname "CN=Angelo, OU=StreetPartners, O=Dev, L=BR, S=SP, C=BR" > /dev/null 2>&1
 
 echo "7. Assinando o APK..."
-$BUILD_TOOLS/apksigner sign --ks my-release-key.jks --ks-pass pass:123456 --out StreetPartners.apk aligned.apk
+$BUILD_TOOLS/apksigner sign --ks my-release-key.jks --ks-pass pass:123456 --v1-signing-enabled true --v2-signing-enabled true --v3-signing-enabled true --out StreetPartners.apk aligned.apk
 
 echo "✅ SUCESSO! O APK está pronto."
