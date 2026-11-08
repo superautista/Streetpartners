@@ -16,7 +16,6 @@
         android:textStyle="bold"
         android:layout_marginBottom="20dp"/>
 
-    <!-- VIDA DO INIMIGO -->
     <TextView
         android:id="@+id/txtInimigo"
         android:layout_width="wrap_content"
@@ -24,9 +23,10 @@
         android:text="INIMIGO (100/100 HP)"
         android:textColor="#FFFFFF"
         android:textSize="16sp"/>
+        
     <ProgressBar
         android:id="@+id/barraInimigo"
-        style="?android:attr/progressBarStyleHorizontal"
+        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="100"
@@ -34,17 +34,17 @@
         android:progressTint="#FF0000"
         android:layout_marginBottom="20dp"/>
 
-    <!-- VIDA DO JOGADOR -->
     <TextView
         android:id="@+id/txtJogador"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="VOCÊ (100/100 HP)"
+        android:text="VOCE (100/100 HP)"
         android:textColor="#FFFFFF"
         android:textSize="16sp"/>
+        
     <ProgressBar
         android:id="@+id/barraJogador"
-        style="?android:attr/progressBarStyleHorizontal"
+        style="@android:style/Widget.ProgressBar.Horizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:max="100"
@@ -52,36 +52,34 @@
         android:progressTint="#00FF00"
         android:layout_marginBottom="20dp"/>
 
-    <!-- LOG DE MENSAGENS -->
     <TextView
         android:id="@+id/txtLog"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="A luta vai começar. Escolha seu golpe!"
+        android:text="A luta vai comecar. Escolha seu golpe!"
         android:textColor="#FFFF00"
         android:textSize="18sp"
         android:gravity="center"
         android:layout_marginBottom="30dp"/>
 
-    <!-- BOTOES DE AÇÃO -->
     <Button
         android:id="@+id/btnSoco"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="👊 SOCO (Dano 15)"
+        android:text="SOCO (Dano 15)"
         android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnChute"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🦵 CHUTE (Dano 25)"
+        android:text="CHUTE (Dano 25)"
         android:layout_marginBottom="8dp"/>
 
     <Button
         android:id="@+id/btnDefender"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="🛡️ DEFENDER (Bloqueia dano)"/>
+        android:text="DEFENDER (Bloqueia dano)"/>
 
 </LinearLayout>
