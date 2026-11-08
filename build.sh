@@ -1,22 +1,30 @@
 #!/bin/bash
+set -e # Para tudo se der erro
 
 BUILD_TOOLS="$ANDROID_HOME/build-tools/33.0.2"
 PLATFORM="$ANDROID_HOME/platforms/android-33"
 
+echo "Criando pastas..."
 mkdir -p gen obj
 
-echo "1. Compilando Recursos..."
+echo "1. Compilando Recursos (AAPT2)..."
 $BUILD_TOOLS/aapt2 compile --dir res -o compiled.zip
 $BUILD_TOOLS/aapt2 link -o base.apk -I $PLATFORM/android.jar --manifest AndroidManifest.xml -R compiled.zip --java gen/
+echo "Verificando se o R.java foi criado:"
+ls -R gen/
 
-echo "2. Compilando Java..."
-javac -cp $PLATFORM/android.jar -d obj gen/com/angelo/streetpartners/R.java src/com/angelo/streetpartners/MainActivity.java
+echo "2. Compilando Java (JAVAC)..."
+# O comando abaixo procura o R.java em qualquer lugar que ele tenha sido criado
+javac -cp $PLATFORM/android.jar -d obj $(find gen -name "R.java") src/com/angelo/streetpartners/MainActivity.java
+echo "Verificando se o MainActivity.class foi criado:"
+ls -R obj/
 
-echo "3. Convertendo DEX..."
-$BUILD_TOOLS/d8 --lib $PLATFORM/android.jar --output . obj/com/angelo/streetpartners/*.class
+echo "3. Convertendo DEX (D8)..."
+$BUILD_TOOLS/d8 --lib $PLATFORM/android.jar --output . $(find obj -name "*.class")
 
 echo "4. Empacotando..."
 zip -uj base.apk classes.dex
+
 echo "5. Alinhando..."
 $BUILD_TOOLS/zipalign -p -f 4 base.apk aligned.apk
 
