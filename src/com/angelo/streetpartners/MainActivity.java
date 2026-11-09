@@ -1,18 +1,12 @@
 package com.angelo.libras;
 
 import android.app.Activity;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.ImageView;
 import android.widget.LinearLayout;
-import java.io.InputStream;
-import java.net.HttpURLConnection;
-import java.net.URL;
+import android.widget.TextView;
 
 public class MainActivity extends Activity {
 
@@ -32,65 +26,64 @@ public class MainActivity extends Activity {
             @Override
             public void onClick(View v) {
                 String texto = editTexto.getText().toString().toUpperCase().trim();
-                containerImagens.removeAllViews(); // Limpa a tela antes de traduzir
+                containerImagens.removeAllViews();
 
                 if (texto.isEmpty()) return;
 
-                // Para cada letra, busca a imagem correspondente
+                // Para cada letra, adiciona um "desenho" de mão na tela
                 for (int i = 0; i < texto.length(); i++) {
                     char letra = texto.charAt(i);
                     if (letra != ' ') {
-                        // Cria um espaço para a imagem e um texto embaixo
-                        ImageView imageView = new ImageView(MainActivity.this);
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(250, 250);
-                        params.setMargins(8, 8, 8, 8);
-                        imageView.setLayoutParams(params);
-                        containerImagens.addView(imageView);
+                        TextView mao = new TextView(MainActivity.this);
+                        
+                        // Define o tamanho gigante para o emoji
+                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
+                                LinearLayout.LayoutParams.WRAP_CONTENT, 
+                                LinearLayout.LayoutParams.WRAP_CONTENT);
+                        params.setMargins(16, 16, 16, 16);
+                        mao.setLayoutParams(params);
+                        mao.setTextSize(64); // Tamanho do emoji
 
-                        // Chama a tarefa que baixa a imagem da internet
-                        new BaixarImagem(imageView).execute(letra);
+                        // Pega o emoji correspondente à letra
+                        mao.setText(getEmojiLibras(letra));
+                        
+                        containerImagens.addView(mao);
                     }
                 }
             }
         });
     }
 
-    // Tarefa que baixa a imagem da letra da internet sem travar o app
-    private class BaixarImagem extends AsyncTask<Character, Void, Bitmap> {
-        private ImageView imageView;
-
-        public BaixarImagem(ImageView imageView) {
-            this.imageView = imageView;
-        }
-
-        @Override
-        protected Bitmap doInBackground(Character... params) {
-            char letra = params[0];
-            Bitmap bitmap = null;
-            try {
-                // Link para o alfabeto manual de Libras (exemplo com imagens reais)
-                // Usamos um servidor de imagens do GitHub
-                String urlString = "https://raw.githubusercontent.com/eduardoprimo/libras-alfabeto/master/" + letra + ".png";
-                URL url = new URL(urlString);
-                HttpURLConnection connection = (HttpURLConnection) url.openConnection();
-                connection.setDoInput(true);
-                connection.connect();
-                InputStream input = connection.getInputStream();
-                bitmap = BitmapFactory.decodeStream(input);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-            return bitmap;
-        }
-
-        @Override
-        protected void onPostExecute(Bitmap result) {
-            if (result != null) {
-                imageView.setImageBitmap(result);
-            } else {
-                // Se a imagem não for encontrada, coloca uma imagem de erro
-                imageView.setImageResource(android.R.drawable.ic_dialog_alert);
-            }
+    // Aqui a gente mapeia a letra para o emoji de mão que mais se parece com o sinal
+    private String getEmojiLibras(char letra) {
+        switch (letra) {
+            case 'A': return "✊"; // A
+            case 'B': return "✋"; // B (mão aberta)
+            case 'C': return "🤏"; // C (dedos curvados)
+            case 'D': return "☝️"; // D (indicador pra cima)
+            case 'E': return "🤜"; // E
+            case 'F': return "👌"; // F
+            case 'G': return "👆"; // G
+            case 'H': return "✌️"; // H
+            case 'I': return "🤙"; // I
+            case 'J': return "🤟"; // J
+            case 'K': return "✋"; // K
+            case 'L': return "👆"; // L (indicador e polegar)
+            case 'M': return "🤛"; // M
+            case 'N': return "🤜"; // N
+            case 'O': return "👌"; // O
+            case 'P': return "👇"; // P
+            case 'Q': return "👇"; // Q
+            case 'R': return "🤞"; // R (dedos cruzados)
+            case 'S': return "✊"; // S
+            case 'T': return "👍"; // T
+            case 'U': return "☝️"; // U
+            case 'V': return "✌️"; // V
+            case 'W': return "🤟"; // W
+            case 'X': return "👆"; // X
+            case 'Y': return "🤙"; // Y
+            case 'Z': return "👆"; // Z
+            default: return "❓"; 
         }
     }
 }
