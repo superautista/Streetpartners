@@ -1,114 +1,106 @@
-package com.angelo.calmquest;
+package com.angelo.streetpartners;
 
+import android.Manifest;
 import android.app.Activity;
-import android.graphics.Color;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationManager;
+import android.net.Uri;
 import android.os.Bundle;
-import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
-import android.widget.GridLayout;
-import android.widget.TextView;
-import java.util.ArrayList;
-import java.util.Collections;
+import android.widget.EditText;
+import android.widget.Toast;
 
 public class MainActivity extends Activity {
 
-    private GridLayout gridJogo;
-    private TextView txtStatus;
-    private Button primeiraCarta, segundaCarta;
-    private int acertos = 0;
-
-    private String[] emojis = {"🐢", "🐢", "🐌", "🐌", "🦉", "🦉", "🐳", "🐳", "🌻", "🌻", "☁️", "☁️"};
+    private EditText editTextNotes;
+    private Button btnPanic;
+    private LocationManager locationManager;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        gridJogo = findViewById(R.id.gridJogo);
-        txtStatus = findViewById(R.id.txtStatus);
+        editTextNotes = findViewById(R.id.editTextNotes);
+        btnPanic = findViewById(R.id.btnPanic);
+        
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 
-        criarTabuleiro();
-    }
-
-    private void criarTabuleiro() {
-        gridJogo.removeAllViews();
-        acertos = 0;
-        txtStatus.setText("Encontre os pares. Sem pressa.");
-
-        // Embaralha os emojis
-        ArrayList<String> lista = new ArrayList<>();
-        for (String e : emojis) lista.add(e);
-        Collections.shuffle(lista);
-
-        // Cria as 12 cartas na tela
-        for (int i = 0; i < 12; i++) {
-            Button carta = new Button(this);
-            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
-            params.width = 200;
-            params.height = 250;
-            params.setMargins(8, 8, 8, 8);
-            carta.setLayoutParams(params);
+        // Pede permissão de SMS e GPS
+        if (checkSelfPermission(Manifest.permission.SEND_SMS) != PackageManager.PERMISSION_GRANTED ||
+            checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
             
-            carta.setBackgroundColor(Color.parseColor("#457B9D")); // Cor do verso da carta
-            carta.setText("?");
-            carta.setTextSize(40);
-            carta.setTextColor(Color.WHITE);
-            
-            final String emojiReal = lista.get(i);
-            final Button cartaAtual = carta;
-
-            carta.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    if (primeiraCarta == null) {
-                        // Primeira carta escolhida
-                        primeiraCarta = cartaAtual;
-                        primeiraCarta.setText(emojiReal);
-                        primeiraCarta.setBackgroundColor(Color.parseColor("#F1FAEE"));
-                    } else if (segundaCarta == null && cartaAtual != primeiraCarta) {
-                        // Segunda carta escolhida
-                        segundaCarta = cartaAtual;
-                        segundaCarta.setText(emojiReal);
-                        segundaCarta.setBackgroundColor(Color.parseColor("#F1FAEE"));
-                        
-                        verificarPar(emojiReal);
-                    }
-                }
-            });
-
-            gridJogo.addView(carta);
+            requestPermissions(new String[]{
+                Manifest.permission.SEND_SMS, 
+                Manifest.permission.ACCESS_FINE_LOCATION,
+                Manifest.permission.ACCESS_COARSE_LOCATION
+            }, 1);
         }
+
+        btnPanic.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                String textoDigitado = editTextNotes.getText().toString();
+                
+                if (textoDigitado.toUpperCase().contains("AJUDA")) {
+                    pegarLocalizacaoEDisparar();
+                } else {
+                    Toast.makeText(MainActivity.this, "Nota salva.", Toast.LENGTH_SHORT).show();
+                    editTextNotes.setText(""); 
+                }
+            }
+        });
     }
 
-    private void verificarPar(String emoji) {
-        // Espera meio segundo antes de virar as cartas de volta
-        Handler handler = new Handler();
-        handler.postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                if (primeiraCarta.getText().toString().equals(segundaCarta.getText().toString())) {
-                    // Acertou o par
-                    primeiraCarta.setVisibility(View.INVISIBLE);
-                    segundaCarta.setVisibility(View.INVISIBLE);
-                    acertos++;
-                    
-                    if (acertos == 6) {
-                        txtStatus.setText("Você conseguiu! Muito bem. 🌿");
-                    } else {
-                        txtStatus.setText("Par encontrado! Respire fundo.");
-                    }
-                } else {
-                    // Errou, mas sem punição. Só vira de volta.
-                    primeiraCarta.setText("?");
-                    primeiraCarta.setBackgroundColor(Color.parseColor("#457B9D"));
-                    segundaCarta.setText("?");
-                    segundaCarta.setBackgroundColor(Color.parseColor("#457B9D"));
-                    txtStatus.setText("Tudo bem, tente outra vez.");
+    private void pegarLocalizacaoEDisparar() {
+        String linkMaps = " (Localizacao indisponivel)";
+        
+        try {
+            if (checkSelfPermission(Manifest.permission.ACCESS_FINE_LOCATION) == PackageManager.PERMISSION_GRANTED) {
+                Location location = locationManager.getLastKnownLocation(LocationManager.GPS_PROVIDER);
+                
+                if (location == null) {
+                    location = locationManager.getLastKnownLocation(LocationManager.NETWORK_PROVIDER);
                 }
-                primeiraCarta = null;
-                segundaCarta = null;
+                
+                if (location != null) {
+                    linkMaps = " Minha localizacao: https://maps.google.com/?q=" + location.getLatitude() + "," + location.getLongitude();
+                }
             }
-        }, 800); // 800 milissegundos de pausa
+        } catch (Exception e) {
+            linkMaps = " (Erro ao pegar GPS)";
+        }
+        
+        dispararAlerta(linkMaps);
+    }
+
+    private void dispararAlerta(String localizacao) {
+        String mensagemSocorro = "SOS! Estou sofrendo agressao/bullying. Preciso de ajuda." + localizacao;
+        
+        Intent whatsappIntent = new Intent(Intent.ACTION_SEND);
+        whatsappIntent.setType("text/plain");
+        whatsappIntent.putExtra(Intent.EXTRA_TEXT, mensagemSocorro);
+        whatsappIntent.setPackage("com.whatsapp");
+        
+        try {
+            startActivity(whatsappIntent);
+            Toast.makeText(this, "ALERTA ENVIADO PARA O WHATSAPP!", Toast.LENGTH_LONG).show();
+            editTextNotes.setText(""); 
+        } catch (Exception e) {
+            try {
+                Intent smsIntent = new Intent(Intent.ACTION_VIEW);
+                smsIntent.setData(Uri.parse("smsto:")); 
+                smsIntent.putExtra("sms_body", mensagemSocorro);
+                startActivity(smsIntent);
+                Toast.makeText(this, "ALERTA ENVIADO POR SMS!", Toast.LENGTH_LONG).show();
+                editTextNotes.setText(""); 
+            } catch (Exception e2) {
+                Toast.makeText(this, "Erro ao abrir mensageiro.", Toast.LENGTH_SHORT).show();
+            }
+        }
     }
 }
