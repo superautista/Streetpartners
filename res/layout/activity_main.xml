@@ -3,34 +3,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:gravity="center"
-    android:padding="16dp"
-    android:background="#1A2A33">
+    android:background="#1A1A1A"
+    android:padding="16dp">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="Calm Quest"
-        android:textSize="28sp"
-        android:textStyle="bold"
-        android:textColor="#A8DADC"
-        android:layout_marginBottom="8dp"/>
+    <EditText
+        android:id="@+id/editTextNotes"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:gravity="top|start"
+        android:hint="Digite suas anotacoes aqui..."
+        android:textColor="#FFFFFF"
+        android:textColorHint="#888888"
+        android:textSize="18sp"
+        android:inputType="textMultiLine" />
 
-    <TextView
-        android:id="@+id/txtStatus"
-        android:layout_width="wrap_content"
+    <Button
+        android:id="@+id/btnPanic"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Encontre os pares. Sem pressa."
-        android:textSize="16sp"
-        android:textColor="#F1FAEE"
-        android:layout_marginBottom="24dp"/>
-
-    <!-- Tabuleiro do jogo -->
-    <GridLayout
-        android:id="@+id/gridJogo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:columnCount="3"
-        android:rowCount="4" />
+        android:layout_marginTop="16dp"
+        android:text="Salvar Nota"
+        android:textColor="#FFFFFF" />
 
 </LinearLayout>
