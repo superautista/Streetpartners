@@ -1,85 +1,48 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/telaPrincipal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:padding="16dp"
-    android:background="#111111">
+    android:background="#000000"
+    android:padding="24dp">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="STREET HACK: FIGHT"
-        android:textColor="#FF0000"
-        android:textSize="24sp"
+        android:text="S.P. AJUzDA"
+        android:textColor="#00FF00"
+        android:textSize="32sp"
         android:textStyle="bold"
-        android:layout_marginBottom="20dp"/>
+        android:layout_marginBottom="40dp" />
 
-    <TextView
-        android:id="@+id/txtInimigo"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="INIMIGO (100/100 HP)"
+    <Button
+        android:id="@+id/btnSOS"
+        android:layout_width="match_parent"
+        android:layout_height="80dp"
+        android:text="🚨 ACIONAR REDE 🚨"
+        android:backgroundTint="#FF0000"
         android:textColor="#FFFFFF"
-        android:textSize="16sp"/>
-        
-    <ProgressBar
-        android:id="@+id/barraInimigo"
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="100"
-        android:progressTint="#FF0000"
-        android:layout_marginBottom="20dp"/>
-
-    <TextView
-        android:id="@+id/txtJogador"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="VOCE (100/100 HP)"
-        android:textColor="#FFFFFF"
-        android:textSize="16sp"/>
-        
-    <ProgressBar
-        android:id="@+id/barraJogador"
-        style="@android:style/Widget.ProgressBar.Horizontal"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:max="100"
-        android:progress="100"
-        android:progressTint="#00FF00"
-        android:layout_marginBottom="20dp"/>
-
-    <TextView
-        android:id="@+id/txtLog"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="A luta vai comecar. Escolha seu golpe!"
-        android:textColor="#FFFF00"
-        android:textSize="18sp"
-        android:gravity="center"
-        android:layout_marginBottom="30dp"/>
+        android:textSize="20sp"
+        android:textStyle="bold"
+        android:layout_marginBottom="16dp" />
 
     <Button
-        android:id="@+id/btnSoco"
+        android:id="@+id/btnCacador"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="SOCO (Dano 15)"
-        android:layout_marginBottom="8dp"/>
+        android:text="MODO CAÇADOR (Silencioso)"
+        android:backgroundTint="#333333"
+        android:textColor="#00FF00"
+        android:layout_marginBottom="16dp" />
 
     <Button
-        android:id="@+id/btnChute"
+        android:id="@+id/btnSusto"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="CHUTE (Dano 25)"
-        android:layout_marginBottom="8dp"/>
-
-    <Button
-        android:id="@+id/btnDefender"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="DEFENDER (Bloqueia dano)"/>
+        android:text="MODO SUSTO"
+        android:backgroundTint="#550000"
+        android:textColor="#FFFFFF" />
 
 </LinearLayout>
