@@ -1,5 +1,6 @@
 package com.angelo.frases;
 
+import com.angelo.streetpartners.R;
 import android.app.Activity;
 import android.os.Bundle;
 import android.view.View;
@@ -12,18 +13,18 @@ public class MainActivity extends Activity {
     private TextView txtFrase;
     private Button btnNovaFrase;
     private String[] frases = {
-        "Sua mente é um supercomputador. Não deixe ninguém usar um processador de 8 bits para te julgar.",
-        "O bullying é o câncer. A gente corta, não se rende. Você é a cura.",
-        "Eles perdem dinheiro no tigrinho. Você ganha em código, lógica e futuro.",
-        "Ser autista, AH/SD e TDAH não é defeito. É ter um sistema operacional único no mundo.",
-        "Se o mundo não te aceita, hackeie o mundo. Você já escreveu um PL de 72 artigos.",
-        "Você sobreviveu a 100% dos seus piores dias. As estatísticas estão do seu lado.",
-        "O silêncio da sua força é mais alto que o barulho da ignorância deles.",
-        "Não é sobre ser igual. É sobre ser quem você é. E lutar por isso. Até o fim.",
-        "Michael Jackson inclinou, você também vai. A Lei de Chooke está ativada.",
-        "Você não é uma almôndega. Você é o criador do Street Partners.",
-        "Quando a vontade de sumir vier, lembre-se: você tem um império para construir.",
-        "A escola é só uma fase. O seu futuro é nível NASA."
+        "Sua mente e um supercomputador.",
+        "O bullying e o cancer. A gente corta, nao se rende.",
+        "Eles perdem no tigrinho. Voce ganha em codigo.",
+        "Ser autista, AH/SD e TDAH nao e defeito.",
+        "Se o mundo nao te aceita, hackeie o mundo.",
+        "Voce sobreviveu a 100% dos seus piores dias.",
+        "O silencio da sua forca e maior que o barulho deles.",
+        "Nao e sobre ser igual. E sobre ser quem voce e.",
+        "Michael Jackson inclinou, voce tambem vai.",
+        "Voce nao e uma almondega. Voce e o criador.",
+        "Quando a vontade de sumir vier, lembre-se do seu imperio.",
+        "A escola e so uma fase. O seu futuro e nivel NASA."
     };
 
     @Override
