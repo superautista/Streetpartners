@@ -1,48 +1,50 @@
 <?xml version="1.0" encoding="utf-8"?>
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    android:id="@+id/telaPrincipal"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
-    android:background="#000000"
-    android:padding="24dp">
+    android:padding="16dp"
+    android:background="#F0F0F0">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="S.P. AJUzDA"
-        android:textColor="#00FF00"
-        android:textSize="32sp"
+        android:text="Mãos que Falam"
+        android:textSize="24sp"
         android:textStyle="bold"
-        android:layout_marginBottom="40dp" />
+        android:textColor="#333333"
+        android:layout_marginBottom="20dp"/>
+
+    <EditText
+        android:id="@+id/editTexto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Digite o que quer falar..."
+        android:inputType="text"
+        android:textSize="18sp"
+        android:padding="12dp"
+        android:background="#FFFFFF"
+        android:layout_marginBottom="16dp"/>
 
     <Button
-        android:id="@+id/btnSOS"
+        android:id="@+id/btnTraduzir"
         android:layout_width="match_parent"
-        android:layout_height="80dp"
-        android:text="🚨 ACIONAR REDE 🚨"
-        android:backgroundTint="#FF0000"
+        android:layout_height="wrap_content"
+        android:text="Traduzir para Libras"
+        android:backgroundTint="#4CAF50"
         android:textColor="#FFFFFF"
+        android:textSize="18sp"
+        android:layout_marginBottom="20dp"/>
+
+    <TextView
+        android:id="@+id/txtResultado"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="As letras vão aparecer aqui..."
         android:textSize="20sp"
-        android:textStyle="bold"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/btnCacador"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="MODO CAÇADOR (Silencioso)"
-        android:backgroundTint="#333333"
-        android:textColor="#00FF00"
-        android:layout_marginBottom="16dp" />
-
-    <Button
-        android:id="@+id/btnSusto"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="MODO SUSTO"
-        android:backgroundTint="#550000"
-        android:textColor="#FFFFFF" />
+        android:textColor="#000000"
+        android:gravity="center"
+        android:textStyle="bold"/>
 
 </LinearLayout>
