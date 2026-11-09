@@ -3,52 +3,34 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
+    android:gravity="center"
     android:padding="16dp"
-    android:background="#F0F0F0">
+    android:background="#1A2A33">
 
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Mãos que Falam"
-        android:textSize="24sp"
+        android:text="Calm Quest"
+        android:textSize="28sp"
         android:textStyle="bold"
-        android:textColor="#333333"
-        android:layout_marginBottom="20dp"/>
+        android:textColor="#A8DADC"
+        android:layout_marginBottom="8dp"/>
 
-    <EditText
-        android:id="@+id/editTexto"
-        android:layout_width="match_parent"
+    <TextView
+        android:id="@+id/txtStatus"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:hint="Digite uma palavra..."
-        android:inputType="text"
-        android:textSize="18sp"
-        android:padding="12dp"
-        android:background="#FFFFFF"
-        android:layout_marginBottom="16dp"/>
+        android:text="Encontre os pares. Sem pressa."
+        android:textSize="16sp"
+        android:textColor="#F1FAEE"
+        android:layout_marginBottom="24dp"/>
 
-    <Button
-        android:id="@+id/btnTraduzir"
-        android:layout_width="match_parent"
+    <!-- Tabuleiro do jogo -->
+    <GridLayout
+        android:id="@+id/gridJogo"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Traduzir para Libras"
-        android:backgroundTint="#4CAF50"
-        android:textColor="#FFFFFF"
-        android:textSize="18sp"
-        android:layout_marginBottom="20dp"/>
-
-    <!-- Área onde as imagens vão aparecer lado a lado -->
-    <HorizontalScrollView
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:background="#FFFFFF"
-        android:padding="8dp">
-
-        <LinearLayout
-            android:id="@+id/containerImagens"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal" />
-            
-    </HorizontalScrollView>
+        android:columnCount="3"
+        android:rowCount="4" />
 
 </LinearLayout>
