@@ -1,89 +1,114 @@
-package com.angelo.libras;
+package com.angelo.calmquest;
 
 import android.app.Activity;
+import android.graphics.Color;
 import android.os.Bundle;
+import android.os.Handler;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
-import android.widget.LinearLayout;
+import android.widget.GridLayout;
 import android.widget.TextView;
+import java.util.ArrayList;
+import java.util.Collections;
 
 public class MainActivity extends Activity {
 
-    private LinearLayout containerImagens;
-    private EditText editTexto;
+    private GridLayout gridJogo;
+    private TextView txtStatus;
+    private Button primeiraCarta, segundaCarta;
+    private int acertos = 0;
+
+    private String[] emojis = {"🐢", "🐢", "🐌", "🐌", "🦉", "🦉", "🐳", "🐳", "🌻", "🌻", "☁️", "☁️"};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        editTexto = findViewById(R.id.editTexto);
-        Button btnTraduzir = findViewById(R.id.btnTraduzir);
-        containerImagens = findViewById(R.id.containerImagens);
+        gridJogo = findViewById(R.id.gridJogo);
+        txtStatus = findViewById(R.id.txtStatus);
 
-        btnTraduzir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String texto = editTexto.getText().toString().toUpperCase().trim();
-                containerImagens.removeAllViews();
-
-                if (texto.isEmpty()) return;
-
-                // Para cada letra, adiciona um "desenho" de mão na tela
-                for (int i = 0; i < texto.length(); i++) {
-                    char letra = texto.charAt(i);
-                    if (letra != ' ') {
-                        TextView mao = new TextView(MainActivity.this);
-                        
-                        // Define o tamanho gigante para o emoji
-                        LinearLayout.LayoutParams params = new LinearLayout.LayoutParams(
-                                LinearLayout.LayoutParams.WRAP_CONTENT, 
-                                LinearLayout.LayoutParams.WRAP_CONTENT);
-                        params.setMargins(16, 16, 16, 16);
-                        mao.setLayoutParams(params);
-                        mao.setTextSize(64); // Tamanho do emoji
-
-                        // Pega o emoji correspondente à letra
-                        mao.setText(getEmojiLibras(letra));
-                        
-                        containerImagens.addView(mao);
-                    }
-                }
-            }
-        });
+        criarTabuleiro();
     }
 
-    // Aqui a gente mapeia a letra para o emoji de mão que mais se parece com o sinal
-    private String getEmojiLibras(char letra) {
-        switch (letra) {
-            case 'A': return "✊"; // A
-            case 'B': return "✋"; // B (mão aberta)
-            case 'C': return "🤏"; // C (dedos curvados)
-            case 'D': return "☝️"; // D (indicador pra cima)
-            case 'E': return "🤜"; // E
-            case 'F': return "👌"; // F
-            case 'G': return "👆"; // G
-            case 'H': return "✌️"; // H
-            case 'I': return "🤙"; // I
-            case 'J': return "🤟"; // J
-            case 'K': return "✋"; // K
-            case 'L': return "👆"; // L (indicador e polegar)
-            case 'M': return "🤛"; // M
-            case 'N': return "🤜"; // N
-            case 'O': return "👌"; // O
-            case 'P': return "👇"; // P
-            case 'Q': return "👇"; // Q
-            case 'R': return "🤞"; // R (dedos cruzados)
-            case 'S': return "✊"; // S
-            case 'T': return "👍"; // T
-            case 'U': return "☝️"; // U
-            case 'V': return "✌️"; // V
-            case 'W': return "🤟"; // W
-            case 'X': return "👆"; // X
-            case 'Y': return "🤙"; // Y
-            case 'Z': return "👆"; // Z
-            default: return "❓"; 
+    private void criarTabuleiro() {
+        gridJogo.removeAllViews();
+        acertos = 0;
+        txtStatus.setText("Encontre os pares. Sem pressa.");
+
+        // Embaralha os emojis
+        ArrayList<String> lista = new ArrayList<>();
+        for (String e : emojis) lista.add(e);
+        Collections.shuffle(lista);
+
+        // Cria as 12 cartas na tela
+        for (int i = 0; i < 12; i++) {
+            Button carta = new Button(this);
+            GridLayout.LayoutParams params = new GridLayout.LayoutParams();
+            params.width = 200;
+            params.height = 250;
+            params.setMargins(8, 8, 8, 8);
+            carta.setLayoutParams(params);
+            
+            carta.setBackgroundColor(Color.parseColor("#457B9D")); // Cor do verso da carta
+            carta.setText("?");
+            carta.setTextSize(40);
+            carta.setTextColor(Color.WHITE);
+            
+            final String emojiReal = lista.get(i);
+            final Button cartaAtual = carta;
+
+            carta.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    if (primeiraCarta == null) {
+                        // Primeira carta escolhida
+                        primeiraCarta = cartaAtual;
+                        primeiraCarta.setText(emojiReal);
+                        primeiraCarta.setBackgroundColor(Color.parseColor("#F1FAEE"));
+                    } else if (segundaCarta == null && cartaAtual != primeiraCarta) {
+                        // Segunda carta escolhida
+                        segundaCarta = cartaAtual;
+                        segundaCarta.setText(emojiReal);
+                        segundaCarta.setBackgroundColor(Color.parseColor("#F1FAEE"));
+                        
+                        verificarPar(emojiReal);
+                    }
+                }
+            });
+
+            gridJogo.addView(carta);
         }
+    }
+
+    private void verificarPar(String emoji) {
+        // Espera meio segundo antes de virar as cartas de volta
+        Handler handler = new Handler();
+        handler.postDelayed(new Runnable() {
+            @Override
+            public void run() {
+                if (primeiraCarta.getText().toString().equals(segundaCarta.getText().toString())) {
+                    // Acertou o par
+                    primeiraCarta.setVisibility(View.INVISIBLE);
+                    segundaCarta.setVisibility(View.INVISIBLE);
+                    acertos++;
+                    
+                    if (acertos == 6) {
+                        txtStatus.setText("Você conseguiu! Muito bem. 🌿");
+                    } else {
+                        txtStatus.setText("Par encontrado! Respire fundo.");
+                    }
+                } else {
+                    // Errou, mas sem punição. Só vira de volta.
+                    primeiraCarta.setText("?");
+                    primeiraCarta.setBackgroundColor(Color.parseColor("#457B9D"));
+                    segundaCarta.setText("?");
+                    segundaCarta.setBackgroundColor(Color.parseColor("#457B9D"));
+                    txtStatus.setText("Tudo bem, tente outra vez.");
+                }
+                primeiraCarta = null;
+                segundaCarta = null;
+            }
+        }, 800); // 800 milissegundos de pausa
     }
 }
