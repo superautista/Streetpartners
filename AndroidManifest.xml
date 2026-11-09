@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.angelo.libras">
+    package="com.angelo.calmquest">
     
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
 
@@ -16,7 +16,7 @@
     <application
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_myplaces"
-        android:label="S.P. Libras"
+        android:label="Calm Quest"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         
         <activity
