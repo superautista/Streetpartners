@@ -28,7 +28,7 @@ public class MainActivity extends Activity {
         WebSettings webSettings = webViewLibras.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE); // Evita o erro de Cache
+        webSettings.setCacheMode(WebSettings.LOAD_CACHE); // Evita o erro de Cache
 
         btnTraduzir.setOnClickListener(new View.OnClickListener() {
             @Override
