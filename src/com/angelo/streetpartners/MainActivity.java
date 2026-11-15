@@ -1,4 +1,4 @@
-package com.angelo.streetlibras;
+package com.angelo.streetlibras; // <--- O NOME DO PACOTE CORRIGIDO
 
 import android.app.Activity;
 import android.os.Bundle;
@@ -17,37 +17,30 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        // Se o seu layout não for activity_main, mude aqui
         setContentView(R.layout.activity_main);
 
         editTexto = findViewById(R.id.editTexto);
         Button btnTraduzir = findViewById(R.id.btnTraduzir);
         webViewLibras = findViewById(R.id.webViewLibras);
 
-        // Configura o WebView para rodar JavaScript e carregar o VLibras
-        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
-webSettings.setJavaScriptEnabled(true);
-webSettings.setDomStorageEnabled(true);
+        // Configurações do WebView
+        WebSettings webSettings = webViewLibras.getSettings();
+        webSettings.setJavaScriptEnabled(true);
+        webSettings.setDomStorageEnabled(true);
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE); // Evita o erro de Cache
 
         btnTraduzir.setOnClickListener(new View.OnClickListener() {
-    @Override
-    public void onClick(View v) {
-        // Limpa o cache do WebView para não dar erro "Cache miss"
-        webViewLibras.clearCache(true);
-        webViewLibras.clearHistory();
-        
-        // Carrega o site oficial do VLibras
-        String urlVlibras = "https://www.vlibras.gov.br/";
-        webViewLibras.loadUrl(urlVlibras);
-        Toast.makeText(MainActivity.this, "Carregando VLibras oficial...", Toast.LENGTH_SHORT).show();
-    }
-});
-
-                // MÁGICA AQUI: O VLibras tem uma API que aceita texto via URL
-                // Nós passamos o texto digitado para o player do VLibras
-                String urlVlibras = "https://www.vlibras.gov.br/app/?texto=" + texto;
+            @Override
+            public void onClick(View v) {
+                // Limpa o cache do WebView
+                webViewLibras.clearCache(true);
+                webViewLibras.clearHistory();
                 
+                // Carrega o site oficial do VLibras
+                String urlVlibras = "https://www.vlibras.gov.br/";
                 webViewLibras.loadUrl(urlVlibras);
-                Toast.makeText(MainActivity.this, "Traduzindo com o Avatar...", Toast.LENGTH_SHORT).show();
+                Toast.makeText(MainActivity.this, "Carregando VLibras...", Toast.LENGTH_SHORT).show();
             }
         });
     }
