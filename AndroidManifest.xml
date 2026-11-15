@@ -8,7 +8,7 @@
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_myplaces"
-        android:label="Cálculo de custo Uber"
+        android:label="Street Libras"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         
         <activity
