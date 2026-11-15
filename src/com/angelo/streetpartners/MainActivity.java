@@ -1,47 +1,51 @@
-package com.angelo.streetlibras; // <--- O NOME DO PACOTE CORRIGIDO
+package com.angelo.streetlibras;
 
 import android.app.Activity;
 import android.os.Bundle;
-import android.view.View;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
-import android.widget.Button;
-import android.widget.EditText;
-import android.widget.Toast;
 
 public class MainActivity extends Activity {
-
-    private WebView webViewLibras;
-    private EditText editTexto;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        // Se o seu layout não for activity_main, mude aqui
         setContentView(R.layout.activity_main);
 
-        editTexto = findViewById(R.id.editTexto);
-        Button btnTraduzir = findViewById(R.id.btnTraduzir);
-        webViewLibras = findViewById(R.id.webViewLibras);
+        WebView webViewLibras = findViewById(R.id.webViewLibras);
 
-        // Configurações do WebView
+        // Configurações para permitir o 3D e JavaScript
         WebSettings webSettings = webViewLibras.getSettings();
         webSettings.setJavaScriptEnabled(true);
         webSettings.setDomStorageEnabled(true);
-        webSettings.setCacheMode(WebSettings.LOAD_CACHE); // Evita o erro de Cache
+        webSettings.setAllowFileAccess(true);
+        
+        // Liga a aceleração de hardware no WebView
+        webViewLibras.setLayerType(WebView.LAYER_TYPE_HARDWARE, null);
 
-        btnTraduzir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                // Limpa o cache do WebView
-                webViewLibras.clearCache(true);
-                webViewLibras.clearHistory();
-                
-                // Carrega o site oficial do VLibras
-                String urlVlibras = "https://www.vlibras.gov.br/";
-                webViewLibras.loadUrl(urlVlibras);
-                Toast.makeText(MainActivity.this, "Carregando VLibras...", Toast.LENGTH_SHORT).show();
-            }
-        });
+        // O código HTML que chama o bonequinho do VLibras
+        String htmlCode = "<!DOCTYPE html>\n" +
+                "<html>\n" +
+                "<head>\n" +
+                "<meta charset='utf-8'>\n" +
+                "<meta name='viewport' content='width=device-width, initial-scale=1'>\n" +
+                "<style> body { background-color: #121212; margin: 0; padding: 0; } </style>\n" +
+                "</head>\n" +
+                "<body>\n" +
+                "  <div vw class='enabled'>\n" +
+                "    <div vw-access-button class='active'></div>\n" +
+                "    <div vw-plugin-wrapper>\n" +
+                "      <div class='vw-plugin-top-wrapper'></div>\n" +
+                "    </div>\n" +
+                "  </div>\n" +
+                "  <script src='https://vlibras.gov.br/app/vlibras-plugin.js'></script>\n" +
+                "  <script>\n" +
+                "    new window.VLibras.Widget('https://vlibras.gov.br/app');\n" +
+                "  </script>\n" +
+                "</body>\n" +
+                "</html>";
+
+        // Carrega o HTML no WebView
+        webViewLibras.loadDataWithBaseURL("https://vlibras.gov.br/", htmlCode, "text/html", "UTF-8", null);
     }
 }
