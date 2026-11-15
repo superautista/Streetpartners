@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.angelo.frases">
+    package="com.angelo.ubers">
 
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
 
     <application
         android:allowBackup="true"
         android:icon="@android:drawable/ic_menu_myplaces"
-        android:label="Street Mind"
+        android:label="Cálculo de custo Uber"
         android:theme="@android:style/Theme.DeviceDefault.NoActionBar">
         
         <activity
