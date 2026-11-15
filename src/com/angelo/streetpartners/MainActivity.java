@@ -24,19 +24,23 @@ public class MainActivity extends Activity {
         webViewLibras = findViewById(R.id.webViewLibras);
 
         // Configura o WebView para rodar JavaScript e carregar o VLibras
-        WebSettings webSettings = webViewLibras.getSettings();
-        webSettings.setJavaScriptEnabled(true);
-        webSettings.setDomStorageEnabled(true);
+        webSettings.setCacheMode(WebSettings.LOAD_NO_CACHE);
+webSettings.setJavaScriptEnabled(true);
+webSettings.setDomStorageEnabled(true);
 
         btnTraduzir.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View v) {
-                String texto = editTexto.getText().toString();
-                
-                if (texto.isEmpty()) {
-                    Toast.makeText(MainActivity.this, "Digite um texto primeiro!", Toast.LENGTH_SHORT).show();
-                    return;
-                }
+    @Override
+    public void onClick(View v) {
+        // Limpa o cache do WebView para não dar erro "Cache miss"
+        webViewLibras.clearCache(true);
+        webViewLibras.clearHistory();
+        
+        // Carrega o site oficial do VLibras
+        String urlVlibras = "https://www.vlibras.gov.br/";
+        webViewLibras.loadUrl(urlVlibras);
+        Toast.makeText(MainActivity.this, "Carregando VLibras oficial...", Toast.LENGTH_SHORT).show();
+    }
+});
 
                 // MÁGICA AQUI: O VLibras tem uma API que aceita texto via URL
                 // Nós passamos o texto digitado para o player do VLibras
