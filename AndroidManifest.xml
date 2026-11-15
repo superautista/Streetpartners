@@ -3,7 +3,7 @@
     package="com.angelo.streetlibras">
 
     <uses-sdk android:minSdkVersion="21" android:targetSdkVersion="33" />
-
+<uses-permission android:name="android.permission.INTERNET" />
     <application
         android:usesCleartextTraffic="true"
         android:allowBackup="true"
