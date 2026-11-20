@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "175969733695",
+    "project_id": "streetuberautista",
+    "storage_bucket": "streetuberautista.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:175969733695:android:2b2b445e0042e64854bc8a",
+        "android_client_info": {
+          "package_name": "com.angelo.streetuberautismos"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDPgt7j0gSNIy_BeiVG_HKmVmgDMG16y7w"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
