@@ -1,47 +1,110 @@
+
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:background="#121212"
-    android:padding="16dp">
+    android:background="#101820"
+    android:fillViewport="true">
 
-    <TextView
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="STREET LIBRAS"
-        android:textColor="#00FF00"
-        android:textSize="24sp"
-        android:textStyle="bold"
-        android:layout_gravity="center"
-        android:layout_marginBottom="10dp"/>
-
-    <EditText
-        android:id="@+id/editTexto"
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:hint="Digite algo para traduzir..."
-        android:textColor="#FFFFFF"
-        android:textColorHint="#888888"
-        android:backgroundTint="#00FF00"/>
+        android:orientation="vertical"
+        android:padding="20dp">
 
-    <Button
-        android:id="@+id/btnTraduzir"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:text="Traduzir com Avatar 3D"
-        android:backgroundTint="#00FF00"
-        android:textColor="#000000"
-        android:textStyle="bold"
-        android:layout_marginTop="10dp"
-        android:layout_marginBottom="10dp"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="STREETPARTNERS"
+            android:textColor="#FFFFFF"
+            android:textSize="28sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="15dp"/>
 
-    <!-- AQUI ENTRA O VLIBRAS -->
-    <WebView
-        android:id="@+id/webViewLibras"
-        android:layout_width="match_parent"
-        android:layout_height="0dp"
-        android:layout_weight="1"
-        android:background="#000000"/>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Sua viagem começa aqui!"
+            android:textColor="#B0BEC5"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:paddingBottom="20dp"/>
 
-</LinearLayout>
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Digite seu destino:"
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"/>
+
+        <EditText
+            android:id="@+id/editDestino"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:hint="Para onde vamos?"
+            android:padding="12dp"
+            android:backgroundTint="#00C853"
+            android:textColor="#FFFFFF"
+            android:textColorHint="#B0BEC5"
+            android:inputType="textCapSentences"/>
+
+        <Button
+            android:id="@+id/btnChamar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="18dp"
+            android:text="CHAMAR MOTORISTA"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#00C853"/>
+
+        <Button
+            android:id="@+id/btnWaze"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:text="ABRIR ROTA NO WAZE"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#1565C0"/>
+
+        <TextView
+            android:id="@+id/txtStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Aguardando conexão..."
+            android:textColor="#FFFFFF"
+            android:textSize="16sp"
+            android:gravity="center"
+            android:padding="20dp"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="VALOR DA CORRIDA: R$ 15,50"
+            android:textColor="#00E676"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:padding="15dp"/>
+
+        <Button
+            android:id="@+id/btnPagar"
+            android:layout_width="match_parent"
+            android:layout_height="55dp"
+            android:layout_marginTop="10dp"
+            android:text="PAGAR COM PIX"
+            android:textColor="#FFFFFF"
+            android:backgroundTint="#00897B"
+            android:enabled="false"/>
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="StreetPartners - Mobilidade inteligente"
+            android:textColor="#90A4AE"
+            android:textSize="12sp"
+            android:gravity="center"
+            android:padding="25dp"/>
+
+    </LinearLayout>
+</ScrollView>
