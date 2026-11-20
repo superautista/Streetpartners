@@ -10,7 +10,7 @@
 
     <application
         android:allowBackup="true"
-        android:label="StreetPartners"
+        android:label="StreetUberAutista"
         android:theme="@android:style/Theme.Material.Light.NoActionBar"
         android:usesCleartextTraffic="false"
         android:supportsRtl="true">
