@@ -90,7 +90,30 @@
                 android:textAllCaps="false"
                 android:textColor="@color/ciano"
                 android:textSize="15sp" />
+        </LinearLayout>
 
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="MAPA DA REGIÃO"
+                android:textColor="@color/ciano"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <WebView
+                android:id="@+id/webViewMapa"
+                android:layout_width="match_parent"
+                android:layout_height="200dp"
+                android:layout_marginTop="12dp" />
         </LinearLayout>
 
         <LinearLayout
@@ -115,11 +138,10 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="12dp"
-                android:text="Conectando ao servidor..."
+                android:text="Aguardando solicitação..."
                 android:textColor="@color/branco"
                 android:textSize="16sp"
                 android:lineSpacingExtra="4dp" />
-
         </LinearLayout>
 
         <LinearLayout
@@ -158,8 +180,18 @@
                 android:textAllCaps="false"
                 android:textColor="@color/ciano"
                 android:textSize="15sp" />
-
         </LinearLayout>
+
+        <Button
+            android:id="@+id/btnHistorico"
+            android:layout_width="match_parent"
+            android:layout_height="52dp"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_button_outline"
+            android:text="Ver Histórico de Corridas"
+            android:textAllCaps="false"
+            android:textColor="@color/branco"
+            android:textSize="15sp" />
 
         <TextView
             android:layout_width="match_parent"
@@ -170,6 +202,5 @@
             android:textColor="@color/texto_secundario"
             android:textSize="12sp"
             android:paddingBottom="12dp" />
-
     </LinearLayout>
 </ScrollView>
