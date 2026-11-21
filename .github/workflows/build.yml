@@ -20,13 +20,18 @@ jobs:
 
       - name: Configurar Android SDK
         uses: android-actions/setup-android@v3
+        with:
+          packages: 'platforms;android-33 build-tools;33.0.2'
+          accept-android-sdk-licenses: true
 
-      - name: Instalar SDK e Build Tools
+      - name: Instalar SDK e Build Tools (Forçado)
         run: |
-          yes | sdkmanager --licenses
-          sdkmanager "platforms;android-33" "build-tools;33.0.2"
+          export ANDROID_HOME=$ANDROID_SDK_ROOT
+          echo "ANDROID_HOME=$ANDROID_SDK_ROOT" >> $GITHUB_ENV
+          yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses
+          $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "platforms;android-33" "build-tools;33.0.2"
 
-      - name: Compilar usando Build.sh (Sem Gradle)
+      - name: Compilar usando Build.sh
         run: |
           chmod +x build.sh
           ./build.sh
