@@ -55,7 +55,7 @@ public class MainActivity extends Activity {
     private static final double VALOR_CORRIDA = 15.50;
 
     // Configure com seus próprios dados Pix.
-    private static final String CHAVE_PIX = "seu-email@exemplo.com";
+    private static final String CHAVE_PIX = "14988376670";
     private static final String NOME_RECEBEDOR = "ANGELO SILVA";
     private static final String CIDADE = "GETULINA";
 
