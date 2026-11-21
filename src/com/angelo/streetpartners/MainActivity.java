@@ -1,6 +1,5 @@
-package com.angelo.streetuberautismos;
-
-import com.angelo.streetuberautismos.R;
+package com.angelo.streetpartners
+    
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
