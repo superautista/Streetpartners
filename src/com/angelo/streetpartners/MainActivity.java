@@ -111,7 +111,18 @@ public class MainActivity extends Activity {
                 txtStatus.setText("Conectado ao servidor!");
                 iniciarGPS();
             } else {
-                txtStatus.setText("Erro ao conectar ao Firebase.");
+    String erro = task.getException() != null
+            ? task.getException().getMessage()
+            : "Erro desconhecido";
+
+    txtStatus.setText("Erro Firebase: " + erro);
+
+    Toast.makeText(
+            this,
+            erro,
+            Toast.LENGTH_LONG
+    ).show();
+            }
             }
         });
     }
