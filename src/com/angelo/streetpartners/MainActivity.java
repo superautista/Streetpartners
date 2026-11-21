@@ -1,4 +1,4 @@
-package com.angelo.streetpartners
+package com.angelo.streetpartners;
     
 import android.app.Activity;
 import android.app.AlertDialog;
