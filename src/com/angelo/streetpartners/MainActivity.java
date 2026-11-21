@@ -1,5 +1,5 @@
 package com.angelo.streetpartners;
-    
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
@@ -49,12 +49,9 @@ public class MainActivity extends Activity {
 
     private static final int PEDIDO_GPS = 100;
 
-    // Mude para "motorista" no aplicativo do motorista.
     private static final String TIPO_USUARIO = "passageiro";
-
     private static final double VALOR_CORRIDA = 15.50;
 
-    // Configure com seus próprios dados Pix.
     private static final String CHAVE_PIX = "14988376670";
     private static final String NOME_RECEBEDOR = "ANGELO SILVA";
     private static final String CIDADE = "GETULINA";
@@ -99,36 +96,48 @@ public class MainActivity extends Activity {
 
     // AUTENTICAÇÃO FIREBASE
     private void iniciarFirebase() {
+
         if (auth.getCurrentUser() != null) {
             uid = auth.getCurrentUser().getUid();
+            txtStatus.setText("Conectado ao servidor!");
             iniciarGPS();
             return;
         }
 
         auth.signInAnonymously().addOnCompleteListener(task -> {
+
             if (task.isSuccessful()) {
-                uid = auth.getCurrentUser().getUid();
-                txtStatus.setText("Conectado ao servidor!");
-                iniciarGPS();
+
+                if (auth.getCurrentUser() != null) {
+                    uid = auth.getCurrentUser().getUid();
+                    txtStatus.setText("Conectado ao servidor!");
+                    iniciarGPS();
+                } else {
+                    txtStatus.setText(
+                            "Login concluído, mas usuário não encontrado."
+                    );
+                }
+
             } else {
-    String erro = task.getException() != null
-            ? task.getException().getMessage()
-            : "Erro desconhecido";
 
-    txtStatus.setText("Erro Firebase: " + erro);
+                String erro = task.getException() != null
+                        ? task.getException().getMessage()
+                        : "Erro desconhecido";
 
-    Toast.makeText(
-            this,
-            erro,
-            Toast.LENGTH_LONG
-    ).show();
-            }
+                txtStatus.setText("Erro Firebase: " + erro);
+
+                Toast.makeText(
+                        MainActivity.this,
+                        erro,
+                        Toast.LENGTH_LONG
+                ).show();
             }
         });
     }
 
     // LOCALIZAÇÃO GPS
     private void iniciarGPS() {
+
         if (ActivityCompat.checkSelfPermission(this,
                 Manifest.permission.ACCESS_FINE_LOCATION)
                 != PackageManager.PERMISSION_GRANTED
@@ -144,10 +153,12 @@ public class MainActivity extends Activity {
                     },
                     PEDIDO_GPS
             );
+
             return;
         }
 
         try {
+
             String provedor =
                     ActivityCompat.checkSelfPermission(this,
                             Manifest.permission.ACCESS_FINE_LOCATION)
@@ -179,11 +190,13 @@ public class MainActivity extends Activity {
     };
 
     private void atualizarLocalizacao(Location location) {
+
         minhaLocalizacao = location;
 
         if (uid == null) return;
 
         Map<String, Object> dados = new HashMap<>();
+
         dados.put("latitude", location.getLatitude());
         dados.put("longitude", location.getLongitude());
         dados.put("atualizadoEm", System.currentTimeMillis());
@@ -200,6 +213,7 @@ public class MainActivity extends Activity {
 
     // SOLICITAR CORRIDA
     private void chamarCorrida() {
+
         if (uid == null) {
             Toast.makeText(this,
                     "Aguardando conexão com o servidor.",
@@ -241,12 +255,14 @@ public class MainActivity extends Activity {
         if (minhaLocalizacao != null) {
             dados.put("origemLatitude",
                     minhaLocalizacao.getLatitude());
+
             dados.put("origemLongitude",
                     minhaLocalizacao.getLongitude());
         }
 
         novaCorrida.setValue(dados)
                 .addOnSuccessListener(unused -> {
+
                     txtStatus.setText("Corrida solicitada!");
 
                     btnPagar.setEnabled(true);
@@ -258,13 +274,26 @@ public class MainActivity extends Activity {
                     acompanharCorrida();
                 })
                 .addOnFailureListener(e -> {
+
                     btnChamar.setEnabled(true);
-                    txtStatus.setText("Erro ao solicitar corrida.");
+
+                    String mensagem = e.getMessage() != null
+                            ? e.getMessage()
+                            : "Erro desconhecido";
+
+                    txtStatus.setText(
+                            "Erro ao solicitar corrida: " + mensagem
+                    );
+
+                    Toast.makeText(this,
+                            mensagem,
+                            Toast.LENGTH_LONG).show();
                 });
     }
 
     // ACOMPANHAR STATUS DA CORRIDA
     private void acompanharCorrida() {
+
         if (corridaId == null) return;
 
         banco.child("corridas")
@@ -282,6 +311,7 @@ public class MainActivity extends Activity {
                         if (status == null) return;
 
                         switch (status) {
+
                             case "aguardando_motorista":
                                 txtStatus.setText(
                                         "Aguardando motorista...");
@@ -321,14 +351,18 @@ public class MainActivity extends Activity {
                     @Override
                     public void onCancelled(
                             @NonNull DatabaseError error) {
+
                         txtStatus.setText(
-                                "Erro ao acompanhar corrida.");
+                                "Erro ao acompanhar corrida: "
+                                        + error.getMessage()
+                        );
                     }
                 });
     }
 
     // ACOMPANHAR LOCALIZAÇÃO DO MOTORISTA
     private void acompanharMotorista(String motoristaId) {
+
         banco.child("motoristas")
                 .child(motoristaId)
                 .child("localizacao")
@@ -345,9 +379,11 @@ public class MainActivity extends Activity {
                                 .getValue(Double.class);
 
                         if (lat != null && lon != null) {
+
                             txtStatus.setText(
                                     "Motorista localizado: "
-                                    + lat + ", " + lon);
+                                            + lat + ", " + lon
+                            );
                         }
                     }
 
@@ -360,6 +396,7 @@ public class MainActivity extends Activity {
 
     // ABRIR WAZE
     private void abrirWaze(String destino) {
+
         String url = "https://waze.com/ul?q="
                 + Uri.encode(destino)
                 + "&navigate=yes";
@@ -372,6 +409,7 @@ public class MainActivity extends Activity {
         try {
             intent.setPackage("com.waze");
             startActivity(intent);
+
         } catch (Exception e) {
             intent.setPackage(null);
             startActivity(intent);
@@ -380,6 +418,7 @@ public class MainActivity extends Activity {
 
     // GERAR PIX
     private void gerarPagamento() {
+
         if (corridaId == null) {
             Toast.makeText(this,
                     "Nenhuma corrida encontrada.",
@@ -444,12 +483,14 @@ public class MainActivity extends Activity {
     }
 
     private String campo(String id, String valor) {
+
         return id
                 + String.format(Locale.US, "%02d", valor.length())
                 + valor;
     }
 
     private String crc16(String texto) {
+
         int crc = 0xFFFF;
 
         for (byte b : texto.getBytes(
@@ -458,11 +499,13 @@ public class MainActivity extends Activity {
             crc ^= (b & 0xFF) << 8;
 
             for (int i = 0; i < 8; i++) {
+
                 if ((crc & 0x8000) != 0) {
                     crc = (crc << 1) ^ 0x1021;
                 } else {
                     crc <<= 1;
                 }
+
                 crc &= 0xFFFF;
             }
         }
@@ -480,6 +523,7 @@ public class MainActivity extends Activity {
                 requestCode, permissions, grantResults);
 
         if (requestCode == PEDIDO_GPS) {
+
             if (ActivityCompat.checkSelfPermission(this,
                     Manifest.permission.ACCESS_FINE_LOCATION)
                     == PackageManager.PERMISSION_GRANTED
@@ -488,7 +532,9 @@ public class MainActivity extends Activity {
                     == PackageManager.PERMISSION_GRANTED) {
 
                 iniciarGPS();
+
             } else {
+
                 Toast.makeText(this,
                         "GPS não autorizado.",
                         Toast.LENGTH_SHORT).show();
@@ -498,10 +544,11 @@ public class MainActivity extends Activity {
 
     @Override
     protected void onDestroy() {
+
         super.onDestroy();
 
         if (locationManager != null) {
             locationManager.removeUpdates(ouvinteGPS);
         }
     }
-}
+                                    }
