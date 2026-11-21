@@ -6,8 +6,7 @@
     android:fillViewport="true">
 
     <LinearLayout
-        
-android:layout_width="match_parent"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:padding="22dp">
@@ -18,8 +17,7 @@ android:layout_width="match_parent"
             android:text="STREET"
             android:textColor="@color/ciano"
             android:textSize="13sp"
-            
-android:textStyle="bold"
+            android:textStyle="bold"
             android:letterSpacing="0.18" />
 
         <TextView
@@ -40,8 +38,7 @@ android:textStyle="bold"
             android:textSize="14sp" />
 
         <LinearLayout
-            
-android:layout_width="match_parent"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
             android:background="@drawable/bg_card"
@@ -50,10 +47,9 @@ android:layout_width="match_parent"
 
             <TextView
                 android:layout_width="match_parent"
-                
-android:layout_height="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="PARA ONDE VAMOS?"
-                android:textColor="@color.ciano"
+                android:textColor="@color/ciano"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
@@ -62,15 +58,14 @@ android:layout_height="wrap_content"
                 android:id="@+id/editDestino"
                 android:layout_width="match_parent"
                 android:layout_height="54dp"
-                
-android:layout_marginTop="12dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_input"
                 android:hint="Digite seu destino"
                 android:inputType="textCapSentences"
                 android:paddingStart="15dp"
                 android:paddingEnd="15dp"
-                android:textColor="@color.branco"
-                android:textColorHint="@color.texto_secundario"
+                android:textColor="@color/branco"
+                android:textColorHint="@color/texto_secundario"
                 android:textSize="16sp" />
 
             <Button
@@ -81,8 +76,7 @@ android:layout_marginTop="12dp"
                 android:background="@drawable/bg_button"
                 android:text="SOLICITAR CORRIDA"
                 android:textAllCaps="false"
-                
-android:textColor="@color.fundo"
+                android:textColor="@color/fundo"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -93,44 +87,11 @@ android:textColor="@color.fundo"
                 android:layout_marginTop="10dp"
                 android:background="@drawable/bg_button_outline"
                 android:text="Abrir rota no Waze"
-                
-android:textAllCaps="false"
-                android:textColor="@color.ciano"
+                android:textAllCaps="false"
+                android:textColor="@color/ciano"
                 android:textSize="15sp" />
 
         </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="18dp"
-            android:background="@drawable/bg_card"
-            
-android:orientation="vertical"
-            android:padding="20dp">
-
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:text="STATUS DA VIAGEM"
-                android:textColor="@color.ciano"
-                android:textSize="12sp"
-                android:textStyle="bold"
-                android:letterSpacing="0.08" />
-
-            
-<TextView
-                android:id="@+id/txtStatus"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="12dp"
-                android:text="Conectando ao servidor..."
-                android:textColor="@color.branco"
-                android:textSize="16sp"
-                android:lineSpacingExtra="4dp" />
-
-        
-</LinearLayout>
 
         <LinearLayout
             android:layout_width="match_parent"
@@ -141,22 +102,49 @@ android:orientation="vertical"
             android:padding="20dp">
 
             <TextView
-                
-android:layout_width="match_parent"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="STATUS DA VIAGEM"
+                android:textColor="@color/ciano"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:letterSpacing="0.08" />
+
+            <TextView
+                android:id="@+id/txtStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="12dp"
+                android:text="Conectando ao servidor..."
+                android:textColor="@color/branco"
+                android:textSize="16sp"
+                android:lineSpacingExtra="4dp" />
+
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="18dp"
+            android:background="@drawable/bg_card"
+            android:orientation="vertical"
+            android:padding="20dp">
+
+            <TextView
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="PAGAMENTO"
-                android:textColor="@color.ciano"
+                android:textColor="@color/ciano"
                 android:textSize="12sp"
                 android:textStyle="bold"
                 android:letterSpacing="0.08" />
 
             <TextView
                 android:layout_width="match_parent"
-                
-android:layout_height="wrap_content"
+                android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:text="Valor previsto: R$ 15,50"
-                android:textColor="@color.branco"
+                android:textColor="@color/branco"
                 android:textSize="17sp"
                 android:textStyle="bold" />
 
@@ -164,24 +152,22 @@ android:layout_height="wrap_content"
                 android:id="@+id/btnPagar"
                 android:layout_width="match_parent"
                 android:layout_height="52dp"
-                
-android:layout_marginTop="12dp"
+                android:layout_marginTop="12dp"
                 android:background="@drawable/bg_button_outline"
                 android:text="Pagar com Pix"
                 android:textAllCaps="false"
-                android:textColor="@color.ciano"
+                android:textColor="@color/ciano"
                 android:textSize="15sp" />
 
         </LinearLayout>
 
         <TextView
             android:layout_width="match_parent"
-            
-android:layout_height="wrap_content"
+            android:layout_height="wrap_content"
             android:layout_marginTop="22dp"
             android:gravity="center"
             android:text="StreetUberAutismos • Mobilidade com respeito"
-            android:textColor="@color.texto_secundario"
+            android:textColor="@color/texto_secundario"
             android:textSize="12sp"
             android:paddingBottom="12dp" />
 
