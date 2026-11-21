@@ -10,7 +10,7 @@ mkdir -p gen obj
 
 echo "1. Compilando Recursos (AAPT2)..."
 $BUILD_TOOLS/aapt2 compile --dir res -o compiled.zip
-$BUILD_TOOLS/aapt2 link -o base.apk -I $PLATFORM/android.jar --manifest AndroidManifest.xml -R compiled.zip --java gen/
+$BUILD_TOOLS/aapt2 link -o base.apk -I $PLATFORM/android.jar --manifest AndroidManifest.xml compiled.zip --java gen/
 
 echo "2. Compilando Java (JAVAC)..."
 find gen -name "R.java" > sources.txt
