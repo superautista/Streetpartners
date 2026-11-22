@@ -1,4 +1,4 @@
-
+ 
 package com.angelo.streetuberautismos;
 
 import android.app.Activity;
@@ -185,7 +185,7 @@ usuarioId = db.getString("usuario_id", "");
                         throw new Exception("Servidor não confirmou a corrida.");
                     }
                 } else {
-                    throw new Exception("Erro: " + e.getMessage();
+                    throw new Exception("Erro: " + e.getMessage());
                 }
 
             } catch (Exception e) {
