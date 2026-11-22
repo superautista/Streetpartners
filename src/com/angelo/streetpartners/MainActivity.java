@@ -336,32 +336,11 @@ private String usuarioId = "";
                 + valor;
     }
 
-    private String crc16(String texto) {
-        int crc = 0xFFFF;
-
-        for (byte b : texto.getBytes(StandardCharsets.UTF_8)) {
-            crc ^= (b & 0xFF) << 8;
-
-            for (int i = 0; i < 8; i++) {
-                if ((crc & 0x8000) != 0) {
-                    crc = (crc << 1) ^ 0x1021;
-                } else {
-                    crc <<= 1;
-                }
-
-                crc &= 0xFFFF;
-            }
-        }
-
-        return String.format(Locale.US, "%04X", crc);
-    }
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        executor.shutdown();
     
-    private void abrirTelaConta() {
+private void abrirTelaConta() {
+    EditText nome = new EditText(this);
+    nome.setHint("Seu nome");
+
     EditText email = new EditText(this);
     email.setHint("Seu e-mail");
     email.setInputType(33);
@@ -369,9 +348,6 @@ private String usuarioId = "";
     EditText senha = new EditText(this);
     senha.setHint("Sua senha");
     senha.setInputType(129);
-
-    EditText nome = new EditText(this);
-    nome.setHint("Seu nome (para cadastro)");
 
     android.widget.LinearLayout layout =
             new android.widget.LinearLayout(this);
@@ -388,17 +364,17 @@ private String usuarioId = "";
     new AlertDialog.Builder(this)
             .setTitle("Conta Street UBER")
             .setView(layout)
-            .setPositiveButton("Criar conta", (d, w) -> {
-                Toast.makeText(this,
-                        "Cadastro será conectado ao Supabase na próxima etapa.",
-                        Toast.LENGTH_LONG).show();
-            })
-            .setNegativeButton("Entrar", (d, w) -> {
-                Toast.makeText(this,
-                        "Login será conectado ao Supabase na próxima etapa.",
-                        Toast.LENGTH_LONG).show();
-            })
+            .setPositiveButton("Criar conta", (d, w) ->
+                    autenticar(true,
+                            nome.getText().toString().trim(),
+                            email.getText().toString().trim(),
+                            senha.getText().toString()))
+            .setNegativeButton("Entrar", (d, w) ->
+                    autenticar(false, "",
+                            email.getText().toString().trim(),
+                            senha.getText().toString()))
             .setNeutralButton("Cancelar", null)
             .show();
-    }
+}
+
 }
