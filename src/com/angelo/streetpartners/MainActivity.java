@@ -4,11 +4,17 @@ package com.angelo.streetuberautismos;
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.os.Bundle;
+import android.os.Looper;
+import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.ClipData;
 import android.content.ClipboardManager;
 import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
 import android.net.Uri;
 import android.webkit.WebView;
 import android.widget.*;
@@ -24,21 +30,22 @@ import java.net.URLEncoder;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Scanner;
+import java.util.Locale;
 
 public class MainActivity extends Activity {
 
     private static final String SUPABASE_URL =
         "https://vxsxjddaswcgnknolpwz.supabase.co";
 
-    // COLE AQUI SUA CHAVE PUBLICÁVEL sb_publishable_
     private static final String SUPABASE_KEY =
         "sb_publishable_wzEU2j3tsiNs15WAqvmFOw_QElCYbRu";
 
-    private static final String PIX = "14988376670";
+    private static final double TARIFA_INICIAL = 7.70;
+    private static final double VALOR_KM = 1.50;
+    private static final double VALOR_MINUTO = 0.30;
 
     private String accessToken = "";
     private String usuarioId = "";
-    private String destinoAtual = "";
 
     private EditText editDestino;
     private Button btnChamar, btnWaze, btnPagar;
@@ -46,10 +53,30 @@ public class MainActivity extends Activity {
     private TextView txtStatus;
     private WebView webViewMapa;
 
+    private LocationManager locationManager;
+    private LocationListener locationListener;
+
+    private double latitudeOrigem;
+    private double longitudeOrigem;
+    private double latitudeDestino;
+    private double longitudeDestino;
+
+    private double distanciaKm;
+    private double duracaoMin;
+    private double valorCorrida;
+
+    private String destinoAtual = "";
+    private String origemAtual = "";
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        inicializarTela();
+    }
+
+    private void inicializarTela() {
 
         editDestino = findViewById(R.id.editDestino);
         btnChamar = findViewById(R.id.btnChamar);
@@ -75,7 +102,7 @@ public class MainActivity extends Activity {
             return true;
         });
 
-        btnChamar.setOnClickListener(v -> registrarCorrida());
+        btnChamar.setOnClickListener(v -> solicitarLocalizacao());
 
         btnWaze.setOnClickListener(v -> abrirWaze());
 
@@ -98,8 +125,8 @@ public class MainActivity extends Activity {
             (HttpURLConnection) url.openConnection();
 
         conexao.setRequestMethod(metodo);
-        conexao.setConnectTimeout(15000);
-        conexao.setReadTimeout(15000);
+        conexao.setConnectTimeout(20000);
+        conexao.setReadTimeout(20000);
 
         conexao.setRequestProperty("apikey", SUPABASE_KEY);
         conexao.setRequestProperty("Accept", "application/json");
@@ -112,12 +139,15 @@ public class MainActivity extends Activity {
 
         if (dados != null) {
             conexao.setDoOutput(true);
+
             conexao.setRequestProperty(
                 "Content-Type", "application/json"
             );
 
             if (preferencia != null) {
-                conexao.setRequestProperty("Prefer", preferencia);
+                conexao.setRequestProperty(
+                    "Prefer", preferencia
+                );
             }
 
             OutputStream saida = conexao.getOutputStream();
@@ -139,6 +169,7 @@ public class MainActivity extends Activity {
                 .useDelimiter("\\A");
 
             resposta = scanner.hasNext() ? scanner.next() : "";
+
             scanner.close();
             entrada.close();
         }
@@ -165,10 +196,10 @@ public class MainActivity extends Activity {
             return new JSONObject(resposta);
         }
 
-        JSONObject resultado = new JSONObject();
-        resultado.put("resposta", resposta);
-        return resultado;
+        return new JSONObject();
     }
+
+    // LOGIN E CADASTRO
 
     private void autenticar(
         boolean cadastro,
@@ -191,6 +222,7 @@ public class MainActivity extends Activity {
 
                     JSONObject metadata = new JSONObject();
                     metadata.put("nome", nome);
+
                     dados.put("data", metadata);
 
                 } else {
@@ -199,29 +231,22 @@ public class MainActivity extends Activity {
                 }
 
                 JSONObject resposta = requisicao(
-                    caminho,
-                    "POST",
-                    dados,
-                    false,
-                    null
+                    caminho, "POST", dados, false, null
                 );
 
-                String token = resposta.optString(
-                    "access_token", ""
-                );
-
-                String id = "";
+                String token =
+                    resposta.optString("access_token", "");
 
                 JSONObject usuario =
                     resposta.optJSONObject("user");
 
-                if (usuario != null) {
-                    id = usuario.optString("id", "");
-                }
+                String id = usuario == null
+                    ? ""
+                    : usuario.optString("id", "");
 
-                if (token.isEmpty()) {
+                if (token.isEmpty() || id.isEmpty()) {
                     throw new Exception(
-                        "Cadastro recebido. Se a confirmação de e-mail estiver ativa, confirme seu e-mail e faça login."
+                        "Se o cadastro foi realizado, confirme o e-mail antes de entrar."
                     );
                 }
 
@@ -236,18 +261,16 @@ public class MainActivity extends Activity {
                     .apply();
 
                 runOnUiThread(() -> {
-                    txtStatus.setText("Login realizado com sucesso!");
+                    txtStatus.setText("Conta conectada!");
                     Toast.makeText(
                         this,
-                        "Bem-vindo ao Street UBER!",
+                        "Login realizado!",
                         Toast.LENGTH_LONG
                     ).show();
                 });
 
-            } catch (Exception erro) {
-                runOnUiThread(() ->
-                    mostrarErro(erro.getMessage())
-                );
+            } catch (Exception e) {
+                runOnUiThread(() -> mostrarErro(e.getMessage()));
             }
         }).start();
     }
@@ -256,10 +279,10 @@ public class MainActivity extends Activity {
 
         LinearLayout layout = new LinearLayout(this);
         layout.setOrientation(LinearLayout.VERTICAL);
-        layout.setPadding(30, 20, 30, 10);
+        layout.setPadding(25, 15, 25, 10);
 
         EditText nome = new EditText(this);
-        nome.setHint("Seu nome");
+        nome.setHint("Nome completo");
 
         EditText email = new EditText(this);
         email.setHint("E-mail");
@@ -275,21 +298,19 @@ public class MainActivity extends Activity {
 
         new AlertDialog.Builder(this)
             .setTitle("Conta Street UBER")
-            .setMessage("Entre ou crie sua conta.")
             .setView(layout)
             .setPositiveButton("Entrar", (d, w) ->
                 autenticar(
-                    false,
-                    "",
-                    email.getText().toString(),
+                    false, "",
+                    email.getText().toString().trim(),
                     senha.getText().toString()
                 )
             )
             .setNegativeButton("Cadastrar", (d, w) ->
                 autenticar(
                     true,
-                    nome.getText().toString(),
-                    email.getText().toString(),
+                    nome.getText().toString().trim(),
+                    email.getText().toString().trim(),
                     senha.getText().toString()
                 )
             )
@@ -297,7 +318,9 @@ public class MainActivity extends Activity {
             .show();
     }
 
-    private void registrarCorrida() {
+    // GPS
+
+    private void solicitarLocalizacao() {
 
         destinoAtual = editDestino.getText()
             .toString().trim();
@@ -312,17 +335,336 @@ public class MainActivity extends Activity {
             return;
         }
 
+        if (checkSelfPermission(
+            Manifest.permission.ACCESS_FINE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED &&
+        checkSelfPermission(
+            Manifest.permission.ACCESS_COARSE_LOCATION
+        ) != PackageManager.PERMISSION_GRANTED) {
+
+            requestPermissions(
+                new String[] {
+                    Manifest.permission.ACCESS_FINE_LOCATION,
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                },
+                100
+            );
+
+            return;
+        }
+
+        obterLocalizacao();
+    }
+
+    @Override
+    public void onRequestPermissionsResult(
+        int requestCode,
+        String[] permissions,
+        int[] grantResults
+    ) {
+        super.onRequestPermissionsResult(
+            requestCode, permissions, grantResults
+        );
+
+        if (requestCode == 100) {
+            if (grantResults.length > 0 &&
+                grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+
+                obterLocalizacao();
+
+            } else {
+                mostrarErro(
+                    "A autorização de localização é necessária para calcular a rota."
+                );
+            }
+        }
+    }
+
+    private void obterLocalizacao() {
+
+        try {
+            locationManager = (LocationManager)
+                getSystemService(Context.LOCATION_SERVICE);
+
+            Location ultima = null;
+
+            if (checkSelfPermission(
+                Manifest.permission.ACCESS_FINE_LOCATION
+            ) == PackageManager.PERMISSION_GRANTED) {
+                ultima = locationManager.getLastKnownLocation(
+                    LocationManager.GPS_PROVIDER
+                );
+            }
+
+            if (ultima == null &&
+                checkSelfPermission(
+                    Manifest.permission.ACCESS_COARSE_LOCATION
+                ) == PackageManager.PERMISSION_GRANTED) {
+
+                ultima = locationManager.getLastKnownLocation(
+                    LocationManager.NETWORK_PROVIDER
+                );
+            }
+
+            if (ultima != null &&
+                System.currentTimeMillis() -
+                ultima.getTime() < 120000) {
+
+                usarLocalizacao(ultima);
+                return;
+            }
+
+            solicitarAtualizacaoGPS();
+
+        } catch (Exception e) {
+            mostrarErro("Erro ao obter GPS: " + e.getMessage());
+        }
+    }
+
+    private void solicitarAtualizacaoGPS() {
+
+        txtStatus.setText("Obtendo localização GPS...");
+
+        try {
+            locationListener = new LocationListener() {
+
+                @Override
+                public void onLocationChanged(Location location) {
+                    locationManager.removeUpdates(this);
+                    usarLocalizacao(location);
+                }
+
+                @Override
+                public void onProviderEnabled(String provider) {}
+
+                @Override
+                public void onProviderDisabled(String provider) {}
+
+                @Override
+                public void onStatusChanged(
+                    String provider, int status, Bundle extras
+                ) {}
+            };
+
+            boolean gps =
+                locationManager.isProviderEnabled(
+                    LocationManager.GPS_PROVIDER
+                );
+
+            String provedor = gps
+                ? LocationManager.GPS_PROVIDER
+                : LocationManager.NETWORK_PROVIDER;
+
+            locationManager.requestSingleUpdate(
+                provedor,
+                locationListener,
+                Looper.getMainLooper()
+            );
+
+        } catch (Exception e) {
+            mostrarErro(
+                "Ative a localização do celular e tente novamente."
+            );
+        }
+    }
+
+    private void usarLocalizacao(Location location) {
+
+        latitudeOrigem = location.getLatitude();
+        longitudeOrigem = location.getLongitude();
+
+        origemAtual = String.format(
+            Locale.US,
+            "%.6f, %.6f",
+            latitudeOrigem,
+            longitudeOrigem
+        );
+
+        txtStatus.setText(
+            "Origem localizada. Calculando rota..."
+        );
+
+        calcularRota();
+    }
+
+    // GEOCODIFICAÇÃO E ROTA
+
+    private void calcularRota() {
+
+        new Thread(() -> {
+            try {
+                String consulta = URLEncoder.encode(
+                    destinoAtual,
+                    "UTF-8"
+                );
+
+                String endereco =
+                    "https://nominatim.openstreetmap.org/search?q="
+                    + consulta
+                    + "&format=json&limit=1";
+
+                HttpURLConnection geo =
+                    (HttpURLConnection)
+                    new URL(endereco).openConnection();
+
+                geo.setRequestProperty(
+                    "User-Agent",
+                    "StreetUber/1.0 Android"
+                );
+
+                geo.setConnectTimeout(20000);
+                geo.setReadTimeout(20000);
+
+                String textoGeo = lerResposta(geo);
+                JSONArray resultados = new JSONArray(textoGeo);
+
+                if (resultados.length() == 0) {
+                    throw new Exception(
+                        "Destino não encontrado. Digite um endereço mais completo."
+                    );
+                }
+
+                JSONObject lugar =
+                    resultados.getJSONObject(0);
+
+                latitudeDestino = Double.parseDouble(
+                    lugar.getString("lat")
+                );
+
+                longitudeDestino = Double.parseDouble(
+                    lugar.getString("lon")
+                );
+
+                String rota =
+                    "https://router.project-osrm.org/route/v1/driving/"
+                    + longitudeOrigem + "," + latitudeOrigem
+                    + ";"
+                    + longitudeDestino + "," + latitudeDestino
+                    + "?overview=false";
+
+                HttpURLConnection conexao =
+                    (HttpURLConnection)
+                    new URL(rota).openConnection();
+
+                conexao.setConnectTimeout(20000);
+                conexao.setReadTimeout(20000);
+
+                String textoRota = lerResposta(conexao);
+
+                JSONObject resposta =
+                    new JSONObject(textoRota);
+
+                JSONArray rotas =
+                    resposta.getJSONArray("routes");
+
+                if (rotas.length() == 0) {
+                    throw new Exception("Rota não encontrada.");
+                }
+
+                JSONObject primeira = rotas.getJSONObject(0);
+
+                distanciaKm =
+                    primeira.getDouble("distance") / 1000.0;
+
+                duracaoMin =
+                    primeira.getDouble("duration") / 60.0;
+
+                valorCorrida = TARIFA_INICIAL
+                    + (distanciaKm * VALOR_KM)
+                    + (duracaoMin * VALOR_MINUTO);
+
+                valorCorrida =
+                    Math.round(valorCorrida * 100.0) / 100.0;
+
+                runOnUiThread(() -> mostrarEstimativa());
+
+            } catch (Exception e) {
+                runOnUiThread(() -> {
+                    txtStatus.setText("Erro ao calcular a rota.");
+                    mostrarErro(e.getMessage());
+                });
+            }
+        }).start();
+    }
+
+    private String lerResposta(HttpURLConnection conexao)
+        throws Exception {
+
+        int codigo = conexao.getResponseCode();
+
+        InputStream entrada =
+            codigo >= 200 && codigo < 300
+            ? conexao.getInputStream()
+            : conexao.getErrorStream();
+
+        if (entrada == null) {
+            throw new Exception("Servidor sem resposta.");
+        }
+
+        Scanner scanner = new Scanner(entrada)
+            .useDelimiter("\\A");
+
+        String resposta =
+            scanner.hasNext() ? scanner.next() : "";
+
+        scanner.close();
+        entrada.close();
+        conexao.disconnect();
+
+        if (codigo < 200 || codigo >= 300) {
+            throw new Exception(
+                "Erro HTTP " + codigo + ": " + resposta
+            );
+        }
+
+        return resposta;
+    }
+
+    private void mostrarEstimativa() {
+
+        String resumo = String.format(
+            Locale.forLanguageTag("pt-BR"),
+            "Distância: %.2f km\n" +
+            "Duração estimada: %.0f minutos\n\n" +
+            "Tarifa inicial: R$ 7,70\n" +
+            "Distância: R$ %.2f\n" +
+            "Tempo: R$ %.2f\n\n" +
+            "TOTAL ESTIMADO: R$ %.2f",
+            distanciaKm,
+            duracaoMin,
+            distanciaKm * VALOR_KM,
+            duracaoMin * VALOR_MINUTO,
+            valorCorrida
+        );
+
+        txtStatus.setText(resumo);
+
+        new AlertDialog.Builder(this)
+            .setTitle("Confirmar corrida")
+            .setMessage(resumo)
+            .setPositiveButton("Solicitar", (d, w) ->
+                registrarCorrida()
+            )
+            .setNegativeButton("Cancelar", null)
+            .show();
+    }
+
+    // REGISTRO DA CORRIDA
+
+    private void registrarCorrida() {
+
         btnChamar.setEnabled(false);
-        txtStatus.setText("Enviando solicitação...");
 
         new Thread(() -> {
             try {
                 JSONObject dados = new JSONObject();
 
                 dados.put("passageiro_id", usuarioId);
-                dados.put("origem", "Origem não informada");
+                dados.put("origem", origemAtual);
                 dados.put("destino", destinoAtual);
-                dados.put("valor", 15.50);
+                dados.put("distancia_km", distanciaKm);
+                dados.put("duracao_min", duracaoMin);
+                dados.put("valor", valorCorrida);
                 dados.put("status", "pendente");
 
                 JSONObject resposta = requisicao(
@@ -336,7 +678,8 @@ public class MainActivity extends Activity {
                 JSONArray corridas =
                     resposta.optJSONArray("dados");
 
-                if (corridas == null || corridas.length() == 0) {
+                if (corridas == null ||
+                    corridas.length() == 0) {
                     throw new Exception(
                         "Servidor não confirmou o registro."
                     );
@@ -345,36 +688,42 @@ public class MainActivity extends Activity {
                 long id = corridas.getJSONObject(0)
                     .getLong("id");
 
-                salvarNoHistorico(destinoAtual);
+                salvarNoHistorico(
+                    "Corrida #" + id +
+                    " - " + destinoAtual +
+                    " - R$ " +
+                    String.format(Locale.US, "%.2f", valorCorrida)
+                );
 
                 runOnUiThread(() -> {
+                    btnChamar.setEnabled(true);
+
                     txtStatus.setText(
                         "Corrida #" + id +
                         "\nSolicitação registrada!" +
                         "\nAguardando motorista."
                     );
 
-                    btnPagar.setEnabled(true);
-                    btnChamar.setEnabled(true);
-
                     Toast.makeText(
                         this,
-                        "Corrida enviada ao servidor!",
+                        "Corrida enviada!",
                         Toast.LENGTH_LONG
                     ).show();
                 });
 
-            } catch (Exception erro) {
+            } catch (Exception e) {
                 runOnUiThread(() -> {
                     btnChamar.setEnabled(true);
-                    txtStatus.setText(
-                        "Erro ao registrar: " + erro.getMessage()
+                    mostrarErro(
+                        "Erro ao registrar corrida: " +
+                        e.getMessage()
                     );
-                    mostrarErro(erro.getMessage());
                 });
             }
         }).start();
     }
+
+    // MOTORISTA
 
     private void abrirTelaMotorista() {
 
@@ -385,12 +734,11 @@ public class MainActivity extends Activity {
 
         LinearLayout tela = new LinearLayout(this);
         tela.setOrientation(LinearLayout.VERTICAL);
-        tela.setPadding(24, 24, 24, 24);
+        tela.setPadding(20, 20, 20, 20);
 
         TextView titulo = new TextView(this);
         titulo.setText("CORRIDAS DISPONÍVEIS");
-        titulo.setTextSize(23);
-        titulo.setTextColor(Color.WHITE);
+        titulo.setTextSize(22);
         tela.addView(titulo);
 
         Button atualizar = new Button(this);
@@ -402,6 +750,7 @@ public class MainActivity extends Activity {
         tela.addView(voltar);
 
         ScrollView scroll = new ScrollView(this);
+
         LinearLayout lista = new LinearLayout(this);
         lista.setOrientation(LinearLayout.VERTICAL);
 
@@ -414,34 +763,12 @@ public class MainActivity extends Activity {
 
         voltar.setOnClickListener(v -> {
             setContentView(R.layout.activity_main);
-            recriarTela();
+            inicializarTela();
         });
 
         setContentView(tela);
+
         carregarCorridasMotorista(lista);
-    }
-
-    private void recriarTela() {
-        editDestino = findViewById(R.id.editDestino);
-        btnChamar = findViewById(R.id.btnChamar);
-        btnWaze = findViewById(R.id.btnWaze);
-        btnPagar = findViewById(R.id.btnPagar);
-        btnHistorico = findViewById(R.id.btnHistorico);
-        btnConta = findViewById(R.id.btnConta);
-        txtStatus = findViewById(R.id.txtStatus);
-        webViewMapa = findViewById(R.id.webViewMapa);
-
-        configurarMapa();
-
-        btnConta.setOnClickListener(v -> abrirTelaConta());
-        btnConta.setOnLongClickListener(v -> {
-            abrirTelaMotorista();
-            return true;
-        });
-        btnChamar.setOnClickListener(v -> registrarCorrida());
-        btnWaze.setOnClickListener(v -> abrirWaze());
-        btnPagar.setOnClickListener(v -> abrirPix());
-        btnHistorico.setOnClickListener(v -> mostrarHistorico());
     }
 
     private void carregarCorridasMotorista(
@@ -452,13 +779,16 @@ public class MainActivity extends Activity {
 
         TextView carregando = new TextView(this);
         carregando.setText("Buscando corridas...");
-        carregando.setTextColor(Color.WHITE);
         lista.addView(carregando);
 
         new Thread(() -> {
             try {
                 JSONObject resposta = requisicao(
-                    "/rest/v1/corridas?status=eq.pendente&motorista_id=is.null&select=id,origem,destino,valor&order=criada_em.desc",
+                    "/rest/v1/corridas?status=eq.pendente"
+                    + "&motorista_id=is.null"
+                    + "&select=id,origem,destino,valor,"
+                    + "distancia_km,duracao_min"
+                    + "&order=criada_em.desc",
                     "GET",
                     null,
                     true,
@@ -471,10 +801,13 @@ public class MainActivity extends Activity {
                 runOnUiThread(() -> {
                     lista.removeAllViews();
 
-                    if (corridas == null || corridas.length() == 0) {
+                    if (corridas == null ||
+                        corridas.length() == 0) {
+
                         TextView vazio = new TextView(this);
-                        vazio.setText("Nenhuma corrida pendente.");
-                        vazio.setTextColor(Color.WHITE);
+                        vazio.setText(
+                            "Nenhuma corrida disponível."
+                        );
                         lista.addView(vazio);
                         return;
                     }
@@ -492,11 +825,10 @@ public class MainActivity extends Activity {
                             card.setOrientation(
                                 LinearLayout.VERTICAL
                             );
-                            card.setPadding(15, 15, 15, 15);
+
+                            card.setPadding(12, 15, 12, 15);
 
                             TextView texto = new TextView(this);
-                            texto.setTextColor(Color.WHITE);
-                            texto.setTextSize(17);
 
                             texto.setText(
                                 "Corrida #" + id +
@@ -504,10 +836,15 @@ public class MainActivity extends Activity {
                                 corrida.optString("origem") +
                                 "\nDestino: " +
                                 corrida.optString("destino") +
-                                "\nValor: R$ " +
+                                "\nDistância: " +
+                                corrida.optString("distancia_km") +
+                                " km\nDuração: " +
+                                corrida.optString("duracao_min") +
+                                " min\nValor: R$ " +
                                 corrida.optString("valor")
                             );
 
+                            texto.setTextSize(16);
                             card.addView(texto);
 
                             Button aceitar = new Button(this);
@@ -515,7 +852,9 @@ public class MainActivity extends Activity {
 
                             aceitar.setOnClickListener(v -> {
                                 aceitar.setEnabled(false);
-                                aceitarCorridaMotorista(id, lista);
+                                aceitarCorridaMotorista(
+                                    id, lista
+                                );
                             });
 
                             card.addView(aceitar);
@@ -527,17 +866,13 @@ public class MainActivity extends Activity {
                     }
                 });
 
-            } catch (Exception erro) {
+            } catch (Exception e) {
                 runOnUiThread(() -> {
                     lista.removeAllViews();
 
-                    TextView mensagem = new TextView(this);
-                    mensagem.setText(
-                        "Erro ao buscar corridas: " +
-                        erro.getMessage()
-                    );
-                    mensagem.setTextColor(Color.RED);
-                    lista.addView(mensagem);
+                    TextView erro = new TextView(this);
+                    erro.setText(e.getMessage());
+                    lista.addView(erro);
                 });
             }
         }).start();
@@ -571,18 +906,16 @@ public class MainActivity extends Activity {
                     carregarCorridasMotorista(lista);
                 });
 
-            } catch (Exception erro) {
+            } catch (Exception e) {
                 runOnUiThread(() -> {
-                    mostrarErro(
-                        "Não foi possível aceitar: " +
-                        erro.getMessage()
-                    );
-
+                    mostrarErro(e.getMessage());
                     carregarCorridasMotorista(lista);
                 });
             }
         }).start();
     }
+
+    // MAPA E WAZE
 
     private void configurarMapa() {
 
@@ -593,6 +926,7 @@ public class MainActivity extends Activity {
             "</iframe></body></html>";
 
         webViewMapa.getSettings().setJavaScriptEnabled(true);
+
         webViewMapa.loadDataWithBaseURL(
             "https://www.openstreetmap.org",
             html,
@@ -608,18 +942,13 @@ public class MainActivity extends Activity {
             .toString().trim();
 
         if (destino.isEmpty()) {
-            Toast.makeText(
-                this,
-                "Digite um destino primeiro.",
-                Toast.LENGTH_SHORT
-            ).show();
+            mostrarErro("Digite um destino primeiro.");
             return;
         }
 
         try {
             String consulta = URLEncoder.encode(
-                destino,
-                "UTF-8"
+                destino, "UTF-8"
             );
 
             Intent intent = new Intent(
@@ -632,47 +961,38 @@ public class MainActivity extends Activity {
 
             startActivity(intent);
 
-        } catch (Exception erro) {
-            mostrarErro(erro.getMessage());
+        } catch (Exception e) {
+            mostrarErro(e.getMessage());
         }
     }
+
+    // PIX
 
     private void abrirPix() {
 
         new AlertDialog.Builder(this)
             .setTitle("Pagamento via Pix")
             .setMessage(
-                "Chave Pix:\n" + PIX +
-                "\n\nValor previsto: R$ 15,50"
+                "Configure a chave Pix oficial do aplicativo " +
+                "antes de receber pagamentos.\n\n" +
+                "Valor da última estimativa: R$ " +
+                String.format(Locale.US, "%.2f", valorCorrida)
             )
-            .setPositiveButton("Copiar chave", (d, w) -> {
-                ClipboardManager clipboard =
-                    (ClipboardManager) getSystemService(
-                        Context.CLIPBOARD_SERVICE
-                    );
-
-                clipboard.setPrimaryClip(
-                    ClipData.newPlainText("Pix", PIX)
-                );
-
-                Toast.makeText(
-                    this,
-                    "Chave Pix copiada!",
-                    Toast.LENGTH_SHORT
-                ).show();
-            })
-            .setNegativeButton("Fechar", null)
+            .setPositiveButton("OK", null)
             .show();
     }
+
+    // HISTÓRICO
 
     private void salvarNoHistorico(String destino) {
 
         SharedPreferences prefs =
             getSharedPreferences("Historico", MODE_PRIVATE);
 
-        String antigo = prefs.getString("corridas", "");
+        String antigo =
+            prefs.getString("corridas", "");
 
-        String novo = destino + "\n" + antigo;
+        String novo = destino + "\n\n" + antigo;
 
         prefs.edit()
             .putString("corridas", novo)
@@ -700,7 +1020,11 @@ public class MainActivity extends Activity {
 
         new AlertDialog.Builder(this)
             .setTitle("Street UBER")
-            .setMessage(mensagem == null ? "Erro desconhecido." : mensagem)
+            .setMessage(
+                mensagem == null
+                ? "Erro desconhecido."
+                : mensagem
+            )
             .setPositiveButton("OK", null)
             .show();
     }
