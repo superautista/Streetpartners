@@ -1007,7 +1007,6 @@ private void abrirPix() {
         .show();
 }
 
-    }
 
     // HISTÓRICO
 
