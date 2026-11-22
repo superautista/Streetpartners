@@ -377,4 +377,125 @@ private void abrirTelaConta() {
             .show();
 }
 
+private void autenticar(
+        boolean cadastro,
+        String nome,
+        String email,
+        String senha
+) {
+    txtStatus.setText("Conectando ao Supabase...");
+
+    executor.execute(() -> {
+        HttpURLConnection conexao = null;
+
+        try {
+            String caminho = cadastro
+                    ? "/auth/v1/signup"
+                    : "/auth/v1/token?grant_type=password";
+
+            URL url = new URL(SUPABASE_URL + caminho);
+            conexao = (HttpURLConnection) url.openConnection();
+
+            conexao.setRequestMethod("POST");
+            conexao.setConnectTimeout(15000);
+            conexao.setReadTimeout(15000);
+            conexao.setDoOutput(true);
+            conexao.setRequestProperty("apikey", SUPABASE_KEY);
+            conexao.setRequestProperty(
+                    "Content-Type", "application/json"
+            );
+
+            JSONObject dados = new JSONObject();
+            dados.put("email", email);
+            dados.put("password", senha);
+
+            if (cadastro) {
+                JSONObject metadata = new JSONObject();
+                metadata.put("nome", nome);
+                dados.put("data", metadata);
+            }
+
+            try (OutputStream os = conexao.getOutputStream()) {
+                os.write(dados.toString().getBytes(
+                        StandardCharsets.UTF_8
+                ));
+            }
+
+            int codigo = conexao.getResponseCode();
+
+            InputStream entrada = codigo >= 200 && codigo < 300
+                    ? conexao.getInputStream()
+                    : conexao.getErrorStream();
+
+            StringBuilder resposta = new StringBuilder();
+
+            if (entrada != null) {
+                BufferedReader leitor = new BufferedReader(
+                        new InputStreamReader(
+                                entrada, StandardCharsets.UTF_8
+                        )
+                );
+
+                String linha;
+                while ((linha = leitor.readLine()) != null) {
+                    resposta.append(linha);
+                }
+                leitor.close();
+            }
+
+            if (codigo < 200 || codigo >= 300) {
+                throw new Exception("HTTP " + codigo + ": " + resposta);
+            }
+
+            JSONObject resultado =
+                    new JSONObject(resposta.toString());
+
+            String token = resultado.optString("access_token", "");
+            JSONObject usuario = resultado.optJSONObject("user");
+
+            if (usuario == null) {
+                usuario = resultado;
+            }
+
+            String id = usuario.optString("id", "");
+
+            if (!token.isEmpty() && !id.isEmpty()) {
+                accessToken = token;
+                usuarioId = id;
+
+                db.edit()
+                        .putString("access_token", token)
+                        .putString("usuario_id", id)
+                        .apply();
+
+                runOnUiThread(() -> {
+                    txtStatus.setText("Conta conectada ao Supabase!");
+                    Toast.makeText(this,
+                            "Acesso realizado com sucesso!",
+                            Toast.LENGTH_LONG).show();
+                });
+
+            } else if (cadastro) {
+                runOnUiThread(() -> {
+                    txtStatus.setText(
+                            "Cadastro enviado. Verifique seu e-mail."
+                    );
+                });
+            } else {
+                throw new Exception("Sessão não retornada pelo servidor.");
+            }
+
+        } catch (Exception e) {
+            runOnUiThread(() -> {
+                txtStatus.setText("Falha na autenticação.");
+                Toast.makeText(this,
+                        "Erro: " + e.getMessage(),
+                        Toast.LENGTH_LONG).show();
+            });
+
+        } finally {
+            if (conexao != null) conexao.disconnect();
+        }
+    });
+}
 }
