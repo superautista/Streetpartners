@@ -79,7 +79,10 @@ usuarioId = db.getString("usuario_id", "");
         btnPagar.setEnabled(false);
         btnConta = findViewById(R.id.btnConta);
 
-        btnConta.setOnClickListener(v -> abrirTelaConta());
+        btnConta.setOnLongClickListener(v -> {
+    abrirTelaMotorista();
+    return true;
+});
         webViewMapa.getSettings().setJavaScriptEnabled(true);
 
         String mapHtml =
@@ -540,5 +543,160 @@ private void autenticar(
     });
 
     setContentView(layout);
+    }private void carregarCorridasMotorista(
+        android.widget.TextView lista,
+        android.widget.LinearLayout layout) {
+
+    new Thread(() -> {
+        java.net.HttpURLConnection conexao = null;
+
+        try {
+            if (accessToken == null || accessToken.isEmpty()) {
+                throw new Exception("Faça login primeiro.");
+            }
+
+            java.net.URL url = new java.net.URL(
+                SUPABASE_URL +
+                "/rest/v1/corridas?status=eq.pendente&select=id,origem,destino,valor&order=criada_em.desc"
+            );
+
+            conexao = (java.net.HttpURLConnection) url.openConnection();
+            conexao.setRequestMethod("GET");
+            conexao.setRequestProperty("apikey", SUPABASE_KEY);
+            conexao.setRequestProperty("Authorization", "Bearer " + accessToken);
+            conexao.setRequestProperty("Accept", "application/json");
+
+            int codigo = conexao.getResponseCode();
+
+            java.io.InputStream entrada = codigo >= 200 && codigo < 300
+                ? conexao.getInputStream()
+                : conexao.getErrorStream();
+
+            java.util.Scanner scanner = new java.util.Scanner(entrada)
+                .useDelimiter("\\A");
+
+            String resposta = scanner.hasNext() ? scanner.next() : "";
+            scanner.close();
+
+            if (codigo < 200 || codigo >= 300) {
+                throw new Exception("Erro " + codigo + ": " + resposta);
+            }
+
+            org.json.JSONArray corridas = new org.json.JSONArray(resposta);
+
+            runOnUiThread(() -> {
+                lista.setText("");
+
+                if (corridas.length() == 0) {
+                    lista.setText("Nenhuma corrida pendente.");
+                    return;
+                }
+
+                for (int i = 0; i < corridas.length(); i++) {
+                    try {
+                        org.json.JSONObject corrida = corridas.getJSONObject(i);
+
+                        long id = corrida.getLong("id");
+                        String origem = corrida.optString("origem");
+                        String destino = corrida.optString("destino");
+                        String valor = corrida.optString("valor");
+
+                        android.widget.TextView item =
+                            new android.widget.TextView(this);
+
+                        item.setText(
+                            "Corrida #" + id +
+                            "\nOrigem: " + origem +
+                            "\nDestino: " + destino +
+                            "\nValor: R$ " + valor
+                        );
+                        item.setTextSize(17);
+                        item.setPadding(8, 20, 8, 8);
+                        layout.addView(item);
+
+                        android.widget.Button aceitar =
+                            new android.widget.Button(this);
+
+                        aceitar.setText("ACEITAR CORRIDA");
+                        layout.addView(aceitar);
+
+                        aceitar.setOnClickListener(v ->
+                            aceitarCorridaMotorista(id, lista)
+                        );
+
+                    } catch (Exception erro) {
+                        lista.setText("Erro ao exibir corrida: " +
+                            erro.getMessage());
+                    }
+                }
+            });
+
+        } catch (Exception erro) {
+            runOnUiThread(() ->
+                lista.setText(erro.getMessage())
+            );
+        } finally {
+            if (conexao != null) conexao.disconnect();
+        }
+    }).start();
+    }private void aceitarCorridaMotorista(long corridaId,
+        android.widget.TextView lista) {
+
+    new Thread(() -> {
+        java.net.HttpURLConnection conexao = null;
+
+        try {
+            java.net.URL url = new java.net.URL(
+                SUPABASE_URL + "/rest/v1/rpc/aceitar_corrida"
+            );
+
+            conexao = (java.net.HttpURLConnection) url.openConnection();
+            conexao.setRequestMethod("POST");
+            conexao.setDoOutput(true);
+
+            conexao.setRequestProperty("apikey", SUPABASE_KEY);
+            conexao.setRequestProperty(
+                "Authorization", "Bearer " + accessToken);
+            conexao.setRequestProperty(
+                "Content-Type", "application/json");
+
+            String json = "{\"p_corrida_id\":" + corridaId + "}";
+
+            try (java.io.OutputStream saida =
+                    conexao.getOutputStream()) {
+                saida.write(json.getBytes("UTF-8"));
+            }
+
+            int codigo = conexao.getResponseCode();
+
+            java.io.InputStream entrada =
+                codigo >= 200 && codigo < 300
+                ? conexao.getInputStream()
+                : conexao.getErrorStream();
+
+            java.util.Scanner scanner =
+                new java.util.Scanner(entrada).useDelimiter("\\A");
+
+            String resposta = scanner.hasNext()
+                ? scanner.next() : "";
+
+            scanner.close();
+
+            if (codigo < 200 || codigo >= 300) {
+                throw new Exception("Erro " + codigo + ": " + resposta);
+            }
+
+            runOnUiThread(() -> {
+                lista.setText("Corrida aceita com sucesso!");
+            });
+
+        } catch (Exception erro) {
+            runOnUiThread(() ->
+                lista.setText("Erro ao aceitar: " + erro.getMessage())
+            );
+        } finally {
+            if (conexao != null) conexao.disconnect();
+        }
+    }).start();
     }
 }
