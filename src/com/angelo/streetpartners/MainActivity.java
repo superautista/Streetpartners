@@ -185,7 +185,7 @@ usuarioId = db.getString("usuario_id", "");
                         throw new Exception("Servidor não confirmou a corrida.");
                     }
                 } else {
-                    throw new Exception("Erro HTTP: " + codigo);
+                    throw new Exception("Erro: " + e.getMessage();
                 }
 
             } catch (Exception e) {
