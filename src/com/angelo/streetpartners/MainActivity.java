@@ -9,8 +9,6 @@ import android.Manifest;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
-import android.content.ClipData;
-import android.content.ClipboardManager;
 import android.content.Context;
 import android.location.Location;
 import android.location.LocationListener;
@@ -19,7 +17,6 @@ import android.net.Uri;
 import android.webkit.WebView;
 import android.widget.*;
 import android.view.View;
-import android.graphics.Color;
 
 import org.json.JSONObject;
 import org.json.JSONArray;
@@ -37,24 +34,39 @@ import java.util.TimeZone;
 
 public class MainActivity extends Activity {
 
+    // SUPABASE
+
     private static final String SUPABASE_URL =
         "https://vxsxjddaswcgnknolpwz.supabase.co";
 
     private static final String SUPABASE_KEY =
         "sb_publishable_wzEU2j3tsiNs15WAqvmFOw_QElCYbRu";
 
+    // TARIFAS
+
     private static final double TARIFA_INICIAL = 7.70;
     private static final double VALOR_KM = 2.20;
-    private static final double VALOR_MINUTO = 0.75;
+
+    private static final double VALOR_HORA_B1 = 45.00;
+    private static final double VALOR_HORA_B2 = 50.00;
+
+    private double valorMinutoAplicado = 0.75;
+    private int bandeiraAplicada = 1;
+
+    // CONTA
 
     private String accessToken = "";
     private String usuarioId = "";
+
+    // COMPONENTES
 
     private EditText editDestino;
     private Button btnChamar, btnWaze, btnPagar;
     private Button btnHistorico, btnConta;
     private TextView txtStatus;
     private WebView webViewMapa;
+
+    // GPS
 
     private LocationManager locationManager;
     private LocationListener locationListener;
@@ -63,6 +75,8 @@ public class MainActivity extends Activity {
     private double longitudeOrigem;
     private double latitudeDestino;
     private double longitudeDestino;
+
+    // CORRIDA
 
     private double distanciaKm;
     private double duracaoMin;
@@ -74,6 +88,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_main);
 
         inicializarTela();
@@ -114,6 +129,8 @@ public class MainActivity extends Activity {
         btnHistorico.setOnClickListener(v -> mostrarHistorico());
     }
 
+    // REQUISIÇÕES SUPABASE
+
     private JSONObject requisicao(
         String caminho,
         String metodo,
@@ -136,24 +153,29 @@ public class MainActivity extends Activity {
 
         if (autenticado) {
             conexao.setRequestProperty(
-                "Authorization", "Bearer " + accessToken
+                "Authorization",
+                "Bearer " + accessToken
             );
         }
 
         if (dados != null) {
+
             conexao.setDoOutput(true);
 
             conexao.setRequestProperty(
-                "Content-Type", "application/json"
+                "Content-Type",
+                "application/json"
             );
 
             if (preferencia != null) {
                 conexao.setRequestProperty(
-                    "Prefer", preferencia
+                    "Prefer",
+                    preferencia
                 );
             }
 
             OutputStream saida = conexao.getOutputStream();
+
             saida.write(dados.toString().getBytes("UTF-8"));
             saida.close();
         }
@@ -168,10 +190,12 @@ public class MainActivity extends Activity {
         String resposta = "";
 
         if (entrada != null) {
+
             Scanner scanner = new Scanner(entrada)
                 .useDelimiter("\\A");
 
-            resposta = scanner.hasNext() ? scanner.next() : "";
+            resposta =
+                scanner.hasNext() ? scanner.next() : "";
 
             scanner.close();
             entrada.close();
@@ -190,8 +214,14 @@ public class MainActivity extends Activity {
         }
 
         if (resposta.trim().startsWith("[")) {
+
             JSONObject resultado = new JSONObject();
-            resultado.put("dados", new JSONArray(resposta));
+
+            resultado.put(
+                "dados",
+                new JSONArray(resposta)
+            );
+
             return resultado;
         }
 
@@ -212,7 +242,9 @@ public class MainActivity extends Activity {
     ) {
 
         new Thread(() -> {
+
             try {
+
                 JSONObject dados = new JSONObject();
 
                 dados.put("email", email);
@@ -221,6 +253,7 @@ public class MainActivity extends Activity {
                 String caminho;
 
                 if (cadastro) {
+
                     caminho = "/auth/v1/signup";
 
                     JSONObject metadata = new JSONObject();
@@ -229,12 +262,17 @@ public class MainActivity extends Activity {
                     dados.put("data", metadata);
 
                 } else {
+
                     caminho =
                         "/auth/v1/token?grant_type=password";
                 }
 
                 JSONObject resposta = requisicao(
-                    caminho, "POST", dados, false, null
+                    caminho,
+                    "POST",
+                    dados,
+                    false,
+                    null
                 );
 
                 String token =
@@ -257,14 +295,17 @@ public class MainActivity extends Activity {
                 usuarioId = id;
 
                 getSharedPreferences(
-                    "StreetUber", MODE_PRIVATE
+                    "StreetUber",
+                    MODE_PRIVATE
                 ).edit()
                     .putString("token", token)
                     .putString("usuario", id)
                     .apply();
 
                 runOnUiThread(() -> {
+
                     txtStatus.setText("Conta conectada!");
+
                     Toast.makeText(
                         this,
                         "Login realizado!",
@@ -273,8 +314,12 @@ public class MainActivity extends Activity {
                 });
 
             } catch (Exception e) {
-                runOnUiThread(() -> mostrarErro(e.getMessage()));
+
+                runOnUiThread(() ->
+                    mostrarErro(e.getMessage())
+                );
             }
+
         }).start();
     }
 
@@ -304,7 +349,8 @@ public class MainActivity extends Activity {
             .setView(layout)
             .setPositiveButton("Entrar", (d, w) ->
                 autenticar(
-                    false, "",
+                    false,
+                    "",
                     email.getText().toString().trim(),
                     senha.getText().toString()
                 )
@@ -320,116 +366,129 @@ public class MainActivity extends Activity {
             .setNeutralButton("Cancelar", null)
             .show();
     }
-    
-private boolean deveUsarBandeira2() {
 
-    Calendar agora = Calendar.getInstance(
-        TimeZone.getTimeZone("America/Sao_Paulo")
-    );
+    // SISTEMA DE BANDEIRAS
 
-    int hora = agora.get(Calendar.HOUR_OF_DAY);
+    private void atualizarBandeira() {
 
-    boolean horarioNoturno = hora >= 23 || hora < 5;
-    boolean domingo =
-        agora.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
+        Calendar agora = Calendar.getInstance(
+            TimeZone.getTimeZone("America/Sao_Paulo")
+        );
 
-    return horarioNoturno || domingo || isFeriadoLins(agora);
-}
+        int hora = agora.get(Calendar.HOUR_OF_DAY);
 
-private boolean isFeriadoLins(Calendar data) {
+        boolean horarioNoturno =
+            hora >= 23 || hora < 5;
 
-    int ano = data.get(Calendar.YEAR);
-    int mes = data.get(Calendar.MONTH) + 1;
-    int dia = data.get(Calendar.DAY_OF_MONTH);
+        boolean domingo =
+            agora.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
 
-    // Feriados nacionais
-    if (mesDia(data, 1, 1) ||
-        mesDia(data, 4, 21) ||
-        mesDia(data, 5, 1) ||
-        mesDia(data, 9, 7) ||
-        mesDia(data, 10, 12) ||
-        mesDia(data, 11, 2) ||
-        mesDia(data, 11, 15) ||
-        mesDia(data, 11, 20) ||
-        mesDia(data, 12, 25)) {
-        return true;
+        boolean feriado = isFeriadoLins(agora);
+
+        if (horarioNoturno || domingo || feriado) {
+
+            bandeiraAplicada = 2;
+            valorMinutoAplicado = VALOR_HORA_B2 / 60.0;
+
+        } else {
+
+            bandeiraAplicada = 1;
+            valorMinutoAplicado = VALOR_HORA_B1 / 60.0;
+        }
     }
 
-    // Feriado estadual de São Paulo
-    if (mesDia(data, 7, 9)) {
-        return true;
+    private boolean isFeriadoLins(Calendar data) {
+
+        int ano = data.get(Calendar.YEAR);
+
+        // FERIADOS NACIONAIS
+
+        if (mesDia(data, 1, 1) ||
+            mesDia(data, 4, 21) ||
+            mesDia(data, 5, 1) ||
+            mesDia(data, 9, 7) ||
+            mesDia(data, 10, 12) ||
+            mesDia(data, 11, 2) ||
+            mesDia(data, 11, 15) ||
+            mesDia(data, 11, 20) ||
+            mesDia(data, 12, 25)) {
+
+            return true;
+        }
+
+        // FERIADO ESTADUAL DE SÃO PAULO
+
+        if (mesDia(data, 7, 9)) {
+            return true;
+        }
+
+        // DATA MUNICIPAL CONFIGURADA: 13 DE JUNHO
+
+        if (mesDia(data, 6, 13)) {
+            return true;
+        }
+
+        // DATAS MÓVEIS CONFIGURADAS
+
+        Calendar pascoa = calcularPascoa(ano);
+
+        Calendar carnaval = (Calendar) pascoa.clone();
+        carnaval.add(Calendar.DAY_OF_MONTH, -47);
+
+        Calendar sextaPaixao = (Calendar) pascoa.clone();
+        sextaPaixao.add(Calendar.DAY_OF_MONTH, -2);
+
+        Calendar corpusChristi = (Calendar) pascoa.clone();
+        corpusChristi.add(Calendar.DAY_OF_MONTH, 60);
+
+        return mesmaData(data, carnaval)
+            || mesmaData(data, sextaPaixao)
+            || mesmaData(data, corpusChristi);
     }
 
-    // Feriado municipal de Lins: Padroeiro
-    if (mesDia(data, 6, 13)) {
-        return true;
+    private boolean mesDia(
+        Calendar data,
+        int mes,
+        int dia
+    ) {
+
+        return data.get(Calendar.MONTH) == mes - 1
+            && data.get(Calendar.DAY_OF_MONTH) == dia;
     }
 
-    // Feriados móveis de Lins
-    Calendar pascoa = calcularPascoa(ano);
+    private boolean mesmaData(Calendar a, Calendar b) {
 
-    Calendar carnaval = (Calendar) pascoa.clone();
-    carnaval.add(Calendar.DAY_OF_MONTH, -47);
-
-    Calendar sextaPaixao = (Calendar) pascoa.clone();
-    sextaPaixao.add(Calendar.DAY_OF_MONTH, -2);
-
-    Calendar corpusChristi = (Calendar) pascoa.clone();
-    corpusChristi.add(Calendar.DAY_OF_MONTH, 60);
-
-    return mesmaData(data, carnaval)
-        || mesmaData(data, sextaPaixao)
-        || mesmaData(data, corpusChristi);
-}
-
-private boolean mesDia(Calendar data, int mes, int dia) {
-    return data.get(Calendar.MONTH) == mes - 1
-        && data.get(Calendar.DAY_OF_MONTH) == dia;
-}
-
-private boolean mesmaData(Calendar a, Calendar b) {
-    return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
-        && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
-}
-
-private Calendar calcularPascoa(int ano) {
-
-    int a = ano % 19;
-    int b = ano / 100;
-    int c = ano % 100;
-    int d = b / 4;
-    int e = b % 4;
-    int f = (b + 8) / 25;
-    int g = (b - f + 1) / 3;
-    int h = (19 * a + b - d - g + 15) % 30;
-    int i = c / 4;
-    int k = c % 4;
-    int l = (32 + 2 * e + 2 * i - h - k) % 7;
-    int m = (a + 11 * h + 22 * l) / 451;
-
-    int mes = (h + l - 7 * m + 114) / 31;
-    int dia = ((h + l - 7 * m + 114) % 31) + 1;
-
-    Calendar pascoa = new GregorianCalendar(
-        TimeZone.getTimeZone("America/Sao_Paulo")
-    );
-
-    pascoa.clear();
-    pascoa.set(ano, mes - 1, dia, 12, 0, 0);
-
-    return pascoa;
-}
-
-atualizarBandeira();
-
-valorCorrida = TARIFA_INICIAL
-    + (distanciaKm * VALOR_KM)
-    + (duracaoMin * valorMinutoAplicado);
-
-valorCorrida =
-    Math.round(valorCorrida * 100.0) / 100.0;
+        return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
+            && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
     }
-}
+
+    private Calendar calcularPascoa(int ano) {
+
+        int a = ano % 19;
+        int b = ano / 100;
+        int c = ano % 100;
+        int d = b / 4;
+        int e = b % 4;
+        int f = (b + 8) / 25;
+        int g = (b - f + 1) / 3;
+        int h = (19 * a + b - d - g + 15) % 30;
+        int i = c / 4;
+        int k = c % 4;
+        int l = (32 + 2 * e + 2 * i - h - k) % 7;
+        int m = (a + 11 * h + 22 * l) / 451;
+
+        int mes = (h + l - 7 * m + 114) / 31;
+        int dia = ((h + l - 7 * m + 114) % 31) + 1;
+
+        Calendar pascoa = new GregorianCalendar(
+            TimeZone.getTimeZone("America/Sao_Paulo")
+        );
+
+        pascoa.clear();
+        pascoa.set(ano, mes - 1, dia, 12, 0, 0);
+
+        return pascoa;
+    }
 
     // GPS
 
@@ -439,12 +498,17 @@ valorCorrida =
             .toString().trim();
 
         if (destinoAtual.isEmpty()) {
+
             editDestino.setError("Digite seu destino");
             return;
         }
 
         if (accessToken.isEmpty() || usuarioId.isEmpty()) {
-            mostrarErro("Entre na sua conta antes de solicitar uma corrida.");
+
+            mostrarErro(
+                "Entre na sua conta antes de solicitar uma corrida."
+            );
+
             return;
         }
 
@@ -475,17 +539,22 @@ valorCorrida =
         String[] permissions,
         int[] grantResults
     ) {
+
         super.onRequestPermissionsResult(
-            requestCode, permissions, grantResults
+            requestCode,
+            permissions,
+            grantResults
         );
 
         if (requestCode == 100) {
+
             if (grantResults.length > 0 &&
                 grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 
                 obterLocalizacao();
 
             } else {
+
                 mostrarErro(
                     "A autorização de localização é necessária para calcular a rota."
                 );
@@ -496,6 +565,7 @@ valorCorrida =
     private void obterLocalizacao() {
 
         try {
+
             locationManager = (LocationManager)
                 getSystemService(Context.LOCATION_SERVICE);
 
@@ -504,6 +574,7 @@ valorCorrida =
             if (checkSelfPermission(
                 Manifest.permission.ACCESS_FINE_LOCATION
             ) == PackageManager.PERMISSION_GRANTED) {
+
                 ultima = locationManager.getLastKnownLocation(
                     LocationManager.GPS_PROVIDER
                 );
@@ -520,8 +591,7 @@ valorCorrida =
             }
 
             if (ultima != null &&
-                System.currentTimeMillis() -
-                ultima.getTime() < 120000) {
+                System.currentTimeMillis() - ultima.getTime() < 120000) {
 
                 usarLocalizacao(ultima);
                 return;
@@ -530,7 +600,10 @@ valorCorrida =
             solicitarAtualizacaoGPS();
 
         } catch (Exception e) {
-            mostrarErro("Erro ao obter GPS: " + e.getMessage());
+
+            mostrarErro(
+                "Erro ao obter GPS: " + e.getMessage()
+            );
         }
     }
 
@@ -539,10 +612,12 @@ valorCorrida =
         txtStatus.setText("Obtendo localização GPS...");
 
         try {
+
             locationListener = new LocationListener() {
 
                 @Override
                 public void onLocationChanged(Location location) {
+
                     locationManager.removeUpdates(this);
                     usarLocalizacao(location);
                 }
@@ -555,7 +630,9 @@ valorCorrida =
 
                 @Override
                 public void onStatusChanged(
-                    String provider, int status, Bundle extras
+                    String provider,
+                    int status,
+                    Bundle extras
                 ) {}
             };
 
@@ -575,6 +652,7 @@ valorCorrida =
             );
 
         } catch (Exception e) {
+
             mostrarErro(
                 "Ative a localização do celular e tente novamente."
             );
@@ -605,7 +683,9 @@ valorCorrida =
     private void calcularRota() {
 
         new Thread(() -> {
+
             try {
+
                 String consulta = URLEncoder.encode(
                     destinoAtual,
                     "UTF-8"
@@ -629,9 +709,12 @@ valorCorrida =
                 geo.setReadTimeout(20000);
 
                 String textoGeo = lerResposta(geo);
-                JSONArray resultados = new JSONArray(textoGeo);
+
+                JSONArray resultados =
+                    new JSONArray(textoGeo);
 
                 if (resultados.length() == 0) {
+
                     throw new Exception(
                         "Destino não encontrado. Digite um endereço mais completo."
                     );
@@ -674,7 +757,8 @@ valorCorrida =
                     throw new Exception("Rota não encontrada.");
                 }
 
-                JSONObject primeira = rotas.getJSONObject(0);
+                JSONObject primeira =
+                    rotas.getJSONObject(0);
 
                 distanciaKm =
                     primeira.getDouble("distance") / 1000.0;
@@ -682,21 +766,33 @@ valorCorrida =
                 duracaoMin =
                     primeira.getDouble("duration") / 60.0;
 
+                // CÁLCULO CORRETO DA BANDEIRA
+
+                atualizarBandeira();
+
                 valorCorrida = TARIFA_INICIAL
                     + (distanciaKm * VALOR_KM)
-                    + (duracaoMin * VALOR_MINUTO);
+                    + (duracaoMin * valorMinutoAplicado);
 
                 valorCorrida =
                     Math.round(valorCorrida * 100.0) / 100.0;
 
-                runOnUiThread(() -> mostrarEstimativa());
+                runOnUiThread(() ->
+                    mostrarEstimativa()
+                );
 
             } catch (Exception e) {
+
                 runOnUiThread(() -> {
-                    txtStatus.setText("Erro ao calcular a rota.");
+
+                    txtStatus.setText(
+                        "Erro ao calcular a rota."
+                    );
+
                     mostrarErro(e.getMessage());
                 });
             }
+
         }).start();
     }
 
@@ -725,6 +821,7 @@ valorCorrida =
         conexao.disconnect();
 
         if (codigo < 200 || codigo >= 300) {
+
             throw new Exception(
                 "Erro HTTP " + codigo + ": " + resposta
             );
@@ -733,24 +830,29 @@ valorCorrida =
         return resposta;
     }
 
+    // ESTIMATIVA
+
     private void mostrarEstimativa() {
 
         String resumo = String.format(
-    Locale.forLanguageTag("pt-BR"),
-    "Bandeira %d\n" +
-    "Distância: %.2f km\n" +
-    "Duração: %.0f minutos\n\n" +
-    "Taxa inicial: R$ 7,70\n" +
-    "Distância: R$ %.2f\n" +
-    "Tempo: R$ %.2f\n\n" +
-    "TOTAL: R$ %.2f",
-    bandeiraAplicada,
-    distanciaKm,
-    duracaoMin,
-    distanciaKm * VALOR_KM,
-    duracaoMin * valorMinutoAplicado,
-    valorCorrida
-);
+            Locale.forLanguageTag("pt-BR"),
+
+            "Bandeira %d\n" +
+            "Distância: %.2f km\n" +
+            "Duração: %.0f minutos\n\n" +
+            "Taxa inicial: R$ 7,70\n" +
+            "Distância: R$ %.2f\n" +
+            "Tempo: R$ %.2f\n\n" +
+            "TOTAL: R$ %.2f",
+
+            bandeiraAplicada,
+            distanciaKm,
+            duracaoMin,
+            distanciaKm * VALOR_KM,
+            duracaoMin * valorMinutoAplicado,
+            valorCorrida
+        );
+
         txtStatus.setText(resumo);
 
         new AlertDialog.Builder(this)
@@ -770,7 +872,9 @@ valorCorrida =
         btnChamar.setEnabled(false);
 
         new Thread(() -> {
+
             try {
+
                 JSONObject dados = new JSONObject();
 
                 dados.put("passageiro_id", usuarioId);
@@ -794,6 +898,7 @@ valorCorrida =
 
                 if (corridas == null ||
                     corridas.length() == 0) {
+
                     throw new Exception(
                         "Servidor não confirmou o registro."
                     );
@@ -806,10 +911,15 @@ valorCorrida =
                     "Corrida #" + id +
                     " - " + destinoAtual +
                     " - R$ " +
-                    String.format(Locale.US, "%.2f", valorCorrida)
+                    String.format(
+                        Locale.US,
+                        "%.2f",
+                        valorCorrida
+                    )
                 );
 
                 runOnUiThread(() -> {
+
                     btnChamar.setEnabled(true);
 
                     txtStatus.setText(
@@ -826,14 +936,18 @@ valorCorrida =
                 });
 
             } catch (Exception e) {
+
                 runOnUiThread(() -> {
+
                     btnChamar.setEnabled(true);
+
                     mostrarErro(
                         "Erro ao registrar corrida: " +
                         e.getMessage()
                     );
                 });
             }
+
         }).start();
     }
 
@@ -842,6 +956,7 @@ valorCorrida =
     private void abrirTelaMotorista() {
 
         if (accessToken.isEmpty()) {
+
             mostrarErro("Faça login primeiro.");
             return;
         }
@@ -853,14 +968,17 @@ valorCorrida =
         TextView titulo = new TextView(this);
         titulo.setText("CORRIDAS DISPONÍVEIS");
         titulo.setTextSize(22);
+
         tela.addView(titulo);
 
         Button atualizar = new Button(this);
         atualizar.setText("Atualizar corridas");
+
         tela.addView(atualizar);
 
         Button voltar = new Button(this);
         voltar.setText("Voltar");
+
         tela.addView(voltar);
 
         ScrollView scroll = new ScrollView(this);
@@ -876,6 +994,7 @@ valorCorrida =
         );
 
         voltar.setOnClickListener(v -> {
+
             setContentView(R.layout.activity_main);
             inicializarTela();
         });
@@ -892,17 +1011,21 @@ valorCorrida =
         lista.removeAllViews();
 
         TextView carregando = new TextView(this);
-        carregando.setText("Buscando corridas...");
+        carregando.setText("Buscando corridas.");
+
         lista.addView(carregando);
 
         new Thread(() -> {
+
             try {
+
                 JSONObject resposta = requisicao(
                     "/rest/v1/corridas?status=eq.pendente"
                     + "&motorista_id=is.null"
                     + "&select=id,origem,destino,valor,"
                     + "distancia_km,duracao_min"
                     + "&order=criada_em.desc",
+
                     "GET",
                     null,
                     true,
@@ -913,21 +1036,26 @@ valorCorrida =
                     resposta.optJSONArray("dados");
 
                 runOnUiThread(() -> {
+
                     lista.removeAllViews();
 
                     if (corridas == null ||
                         corridas.length() == 0) {
 
                         TextView vazio = new TextView(this);
+
                         vazio.setText(
                             "Nenhuma corrida disponível."
                         );
+
                         lista.addView(vazio);
                         return;
                     }
 
                     for (int i = 0; i < corridas.length(); i++) {
+
                         try {
+
                             JSONObject corrida =
                                 corridas.getJSONObject(i);
 
@@ -959,15 +1087,19 @@ valorCorrida =
                             );
 
                             texto.setTextSize(16);
+
                             card.addView(texto);
 
                             Button aceitar = new Button(this);
                             aceitar.setText("ACEITAR CORRIDA");
 
                             aceitar.setOnClickListener(v -> {
+
                                 aceitar.setEnabled(false);
+
                                 aceitarCorridaMotorista(
-                                    id, lista
+                                    id,
+                                    lista
                                 );
                             });
 
@@ -975,20 +1107,25 @@ valorCorrida =
                             lista.addView(card);
 
                         } catch (Exception e) {
+
                             mostrarErro(e.getMessage());
                         }
                     }
                 });
 
             } catch (Exception e) {
+
                 runOnUiThread(() -> {
+
                     lista.removeAllViews();
 
                     TextView erro = new TextView(this);
                     erro.setText(e.getMessage());
+
                     lista.addView(erro);
                 });
             }
+
         }).start();
     }
 
@@ -998,8 +1135,11 @@ valorCorrida =
     ) {
 
         new Thread(() -> {
+
             try {
+
                 JSONObject dados = new JSONObject();
+
                 dados.put("p_corrida_id", corridaId);
 
                 requisicao(
@@ -1011,6 +1151,7 @@ valorCorrida =
                 );
 
                 runOnUiThread(() -> {
+
                     Toast.makeText(
                         this,
                         "Corrida aceita!",
@@ -1021,15 +1162,19 @@ valorCorrida =
                 });
 
             } catch (Exception e) {
+
                 runOnUiThread(() -> {
+
                     mostrarErro(e.getMessage());
+
                     carregarCorridasMotorista(lista);
                 });
             }
+
         }).start();
     }
 
-    // MAPA E WAZE
+    // MAPA
 
     private void configurarMapa() {
 
@@ -1039,7 +1184,8 @@ valorCorrida =
             "src='https://www.openstreetmap.org/export/embed.html?bbox=-49.8%2C-22.0%2C-49.4%2C-21.5&layer=mapnik'>" +
             "</iframe></body></html>";
 
-        webViewMapa.getSettings().setJavaScriptEnabled(true);
+        webViewMapa.getSettings()
+            .setJavaScriptEnabled(true);
 
         webViewMapa.loadDataWithBaseURL(
             "https://www.openstreetmap.org",
@@ -1050,84 +1196,101 @@ valorCorrida =
         );
     }
 
+    // WAZE
+
     private void abrirWaze() {
 
         String destino = editDestino.getText()
             .toString().trim();
 
         if (destino.isEmpty()) {
+
             mostrarErro("Digite um destino primeiro.");
             return;
         }
 
         try {
+
             String consulta = URLEncoder.encode(
-                destino, "UTF-8"
+                destino,
+                "UTF-8"
             );
 
             Intent intent = new Intent(
                 Intent.ACTION_VIEW,
                 Uri.parse(
                     "https://waze.com/ul?q=" +
-                    consulta + "&navigate=yes"
+                    consulta +
+                    "&navigate=yes"
                 )
             );
 
             startActivity(intent);
 
         } catch (Exception e) {
+
             mostrarErro(e.getMessage());
         }
     }
 
     // PIX
 
-   
-private void abrirPix() {
+    private void abrirPix() {
 
-    if (valorCorrida <= 0) {
+        if (valorCorrida <= 0) {
+
+            new AlertDialog.Builder(this)
+                .setTitle("Pagamento via Pix")
+                .setMessage(
+                    "Primeiro, calcule uma rota e solicite uma corrida."
+                )
+                .setPositiveButton("OK", null)
+                .show();
+
+            return;
+        }
+
+        double valorDistancia =
+            distanciaKm * VALOR_KM;
+
+        double valorTempo =
+            duracaoMin * valorMinutoAplicado;
+
+        String resumo = String.format(
+            Locale.forLanguageTag("pt-BR"),
+
+            "Resumo do pagamento:\n\n" +
+            "Bandeira: %d\n" +
+            "Taxa inicial: R$ 7,70\n" +
+            "Distância (%.2f km): R$ %.2f\n" +
+            "Tempo (%.0f min): R$ %.2f\n\n" +
+            "TOTAL PARA PAGAMENTO: R$ %.2f\n\n" +
+            "Use esse valor ao realizar o Pix.",
+
+            bandeiraAplicada,
+            distanciaKm,
+            valorDistancia,
+            duracaoMin,
+            valorTempo,
+            valorCorrida
+        );
+
         new AlertDialog.Builder(this)
             .setTitle("Pagamento via Pix")
-            .setMessage(
-                "Primeiro, calcule uma rota e solicite uma corrida."
-            )
+            .setMessage(resumo)
             .setPositiveButton("OK", null)
             .show();
-        return;
     }
-
-    double valorDistancia = distanciaKm * VALOR_KM;
-    double valorTempo = duracaoMin * VALOR_MINUTO;
-
-    String resumo = String.format(
-        Locale.forLanguageTag("pt-BR"),
-        "Resumo do pagamento:\n\n" +
-        "Taxa inicial: R$ 7,70\n" +
-        "Distância (%.2f km): R$ %.2f\n" +
-        "Tempo (%.0f min): R$ %.2f\n\n" +
-        "TOTAL PARA PAGAMENTO: R$ %.2f\n\n" +
-        "Use esse valor ao realizar o Pix.",
-        distanciaKm,
-        valorDistancia,
-        duracaoMin,
-        valorTempo,
-        valorCorrida
-    );
-
-    new AlertDialog.Builder(this)
-        .setTitle("Pagamento via Pix")
-        .setMessage(resumo)
-        .setPositiveButton("OK", null)
-        .show();
-}
-
 
     // HISTÓRICO
 
     private void salvarNoHistorico(String destino) {
 
         SharedPreferences prefs =
-            getSharedPreferences("Historico", MODE_PRIVATE);
+            getSharedPreferences(
+                "Historico",
+                MODE_PRIVATE
+            );
 
         String antigo =
             prefs.getString("corridas", "");
@@ -1142,7 +1305,10 @@ private void abrirPix() {
     private void mostrarHistorico() {
 
         SharedPreferences prefs =
-            getSharedPreferences("Historico", MODE_PRIVATE);
+            getSharedPreferences(
+                "Historico",
+                MODE_PRIVATE
+            );
 
         String historico = prefs.getString(
             "corridas",
@@ -1155,6 +1321,8 @@ private void abrirPix() {
             .setPositiveButton("Fechar", null)
             .show();
     }
+
+    // MENSAGENS DE ERRO
 
     private void mostrarErro(String mensagem) {
 
