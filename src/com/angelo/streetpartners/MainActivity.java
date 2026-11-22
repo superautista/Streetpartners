@@ -212,7 +212,7 @@ if (codigo < 200 || codigo >= 300) {
 
                     Toast.makeText(
                             MainActivity.this,
-                            "Erro ao registrar: " + e.getMessage()",                           Toast.LENGTH_LONG
+                            "Erro ao registrar: " + e.getMessage(),                           Toast.LENGTH_LONG
                     ).show();
                 });
 
