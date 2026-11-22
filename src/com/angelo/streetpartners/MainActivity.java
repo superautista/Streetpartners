@@ -152,7 +152,11 @@ usuarioId = db.getString("usuario_id", "");
 java.util.Scanner scannerErro =
     new java.util.Scanner(respostaServidor).useDelimiter("\\A");
 
-String mensagemServidor =
+String corpoErro =
+    java.util.Scanner scannerErro =
+    new java.util.Scanner(respostaServidor).useDelimiter("\\A");
+
+corpoErro =
     scannerErro.hasNext() ? scannerErro.next() : "";
 
 scannerErro.close();
@@ -702,8 +706,7 @@ private void autenticar(
             scanner.close();
 
             if (codigo < 200 || codigo >= 300) {
-                throw new Exception("Erro " + codigo + ": " + resposta);
-            }
+                throw new Exception("HTTP " + codigo + ": " + corpoErro);
 
             runOnUiThread(() -> {
                 lista.setText("Corrida aceita com sucesso!");
