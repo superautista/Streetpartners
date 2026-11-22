@@ -67,7 +67,9 @@ public class MainActivity extends Activity {
         db = getSharedPreferences("RotaFacilDB", MODE_PRIVATE);
 
         btnPagar.setEnabled(false);
+        btnConta = findViewById(R.id.btnConta);
 
+        btnConta.setOnClickListener(v -> abrirTelaConta());
         webViewMapa.getSettings().setJavaScriptEnabled(true);
 
         String mapHtml =
@@ -350,5 +352,45 @@ public class MainActivity extends Activity {
     protected void onDestroy() {
         super.onDestroy();
         executor.shutdown();
+    
+    private void abrirTelaConta() {
+    EditText email = new EditText(this);
+    email.setHint("Seu e-mail");
+    email.setInputType(33);
+
+    EditText senha = new EditText(this);
+    senha.setHint("Sua senha");
+    senha.setInputType(129);
+
+    EditText nome = new EditText(this);
+    nome.setHint("Seu nome (para cadastro)");
+
+    android.widget.LinearLayout layout =
+            new android.widget.LinearLayout(this);
+
+    layout.setOrientation(
+            android.widget.LinearLayout.VERTICAL
+    );
+    layout.setPadding(40, 20, 40, 10);
+
+    layout.addView(nome);
+    layout.addView(email);
+    layout.addView(senha);
+
+    new AlertDialog.Builder(this)
+            .setTitle("Conta Street UBER")
+            .setView(layout)
+            .setPositiveButton("Criar conta", (d, w) -> {
+                Toast.makeText(this,
+                        "Cadastro será conectado ao Supabase na próxima etapa.",
+                        Toast.LENGTH_LONG).show();
+            })
+            .setNegativeButton("Entrar", (d, w) -> {
+                Toast.makeText(this,
+                        "Login será conectado ao Supabase na próxima etapa.",
+                        Toast.LENGTH_LONG).show();
+            })
+            .setNeutralButton("Cancelar", null)
+            .show();
     }
 }
