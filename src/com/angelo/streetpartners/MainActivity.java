@@ -193,7 +193,7 @@ leitor.close();
                     JSONObject resultado =
                             new JSONObject(resposta.toString());
 
-                    if (resultado.optBoolean("sucesso")) {
+                    if (resultado.has("id")) {
                         runOnUiThread(() -> {
                             txtStatus.setText(
                                     "Solicitação registrada!\nAguardando motorista."
