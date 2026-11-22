@@ -165,7 +165,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
-                android:text="Valor previsto: R$ 15,50"
+                android:text="Valor previsto: R$ 7,70 mais 0,30/minuto e 1,50/km"
                 android:textColor="@color/branco"
                 android:textSize="17sp"
                 android:textStyle="bold" />
