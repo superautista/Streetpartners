@@ -184,10 +184,8 @@ usuarioId = db.getString("usuario_id", "");
                     } else {
                         throw new Exception("Servidor não confirmou a corrida.");
                     }
-                } else {
-                    throw new Exception("Erro: " + e.getMessage());
                 }
-
+    
             } catch (Exception e) {
                 runOnUiThread(() -> {
                     txtStatus.setText("Não foi possível solicitar a corrida.");
