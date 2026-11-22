@@ -500,4 +500,23 @@ private void autenticar(
         }
     });
 }
+    private String crc16(String texto) {
+    int crc = 0xFFFF;
+
+    for (byte b : texto.getBytes(StandardCharsets.UTF_8)) {
+        crc ^= (b & 0xFF) << 8;
+
+        for (int i = 0; i < 8; i++) {
+            if ((crc & 0x8000) != 0) {
+                crc = (crc << 1) ^ 0x1021;
+            } else {
+                crc <<= 1;
+            }
+
+            crc &= 0xFFFF;
+        }
+    }
+
+    return String.format(Locale.US, "%04X", crc);
+    }
 }
