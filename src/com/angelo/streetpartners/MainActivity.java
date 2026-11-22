@@ -143,36 +143,25 @@ usuarioId = db.getString("usuario_id", "");
                     os.write(corpo);
                 }
 
-                int codigo = conexao.getResponseCode();
-             java.io.InputStream respostaServidor =
-    (codigo >= 200 && codigo < 300)
-    ? conexao.getInputStream()
-    : conexao.getErrorStream();
+                
+int codigo = conexao.getResponseCode();
+
+java.io.InputStream respostaServidor =
+        (codigo >= 200 && codigo < 300)
+        ? conexao.getInputStream()
+        : conexao.getErrorStream();
 
 java.util.Scanner scannerErro =
-    new java.util.Scanner(respostaServidor).useDelimiter("\\A");
+        new java.util.Scanner(respostaServidor).useDelimiter("\\A");
 
-String corpoErro =
-    java.util.Scanner scannerErro =
-    new java.util.Scanner(respostaServidor).useDelimiter("\\A");
-
-corpoErro =
-    scannerErro.hasNext() ? scannerErro.next() : "";
+String mensagemServidor =
+        scannerErro.hasNext() ? scannerErro.next() : "";
 
 scannerErro.close();
-String mensagemServidor =
-    leitor.hasNext() ? leitor.next() : "";
-
-leitor.close();
 
 if (codigo < 200 || codigo >= 300) {
     throw new Exception("HTTP " + codigo + ": " + mensagemServidor);
 }
-
-                InputStream entrada = codigo >= 200 && codigo < 300
-                        ? conexao.getInputStream()
-                        : conexao.getErrorStream();
-
                 StringBuilder resposta = new StringBuilder();
 
                 if (entrada != null) {
