@@ -516,5 +516,29 @@ private void autenticar(
     }
 
     return String.format(Locale.US, "%04X", crc);
+    }private void abrirTelaMotorista() {
+    android.widget.LinearLayout layout = new android.widget.LinearLayout(this);
+    layout.setOrientation(android.widget.LinearLayout.VERTICAL);
+    layout.setPadding(24, 24, 24, 24);
+
+    android.widget.TextView titulo = new android.widget.TextView(this);
+    titulo.setText("CORRIDAS DISPONÍVEIS");
+    titulo.setTextSize(22);
+    layout.addView(titulo);
+
+    android.widget.Button atualizar = new android.widget.Button(this);
+    atualizar.setText("Atualizar corridas");
+    layout.addView(atualizar);
+
+    android.widget.TextView lista = new android.widget.TextView(this);
+    lista.setText("Toque em atualizar para buscar corridas.");
+    layout.addView(lista);
+
+    atualizar.setOnClickListener(v -> {
+        lista.setText("Buscando corridas...");
+        carregarCorridasMotorista(lista, layout);
+    });
+
+    setContentView(layout);
     }
 }
