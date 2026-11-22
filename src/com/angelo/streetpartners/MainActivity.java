@@ -35,7 +35,7 @@ import java.util.concurrent.Executors;
 public class MainActivity extends Activity {
 
     private EditText editDestino;
-    private Button btnChamar, btnPagar, btnWaze, btnHistorico;
+    private Button btnChamar, btnPagar, btnWaze, btnHistorico, btnConta;
     private TextView txtStatus;
     private WebView webViewMapa;
     private SharedPreferences db;
