@@ -202,5 +202,15 @@
             android:textColor="@color/texto_secundario"
             android:textSize="12sp"
             android:paddingBottom="12dp" />
+        <Button
+    android:id="@+id/btnConta"
+    android:layout_width="match_parent"
+    android:layout_height="50dp"
+    android:layout_marginTop="14dp"
+    android:background="@drawable/bg_button_outline"
+    android:text="Entrar / Criar conta"
+    android:textAllCaps="false"
+    android:textColor="@color/ciano"
+    android:textSize="15sp" />
     </LinearLayout>
 </ScrollView>
