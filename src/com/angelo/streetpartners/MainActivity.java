@@ -73,6 +73,8 @@ private String usuarioId = "";
         webViewMapa = findViewById(R.id.webViewMapa);
 
         db = getSharedPreferences("RotaFacilDB", MODE_PRIVATE);
+        accessToken = db.getString("access_token", "");
+usuarioId = db.getString("usuario_id", "");
 
         btnPagar.setEnabled(false);
         btnConta = findViewById(R.id.btnConta);
