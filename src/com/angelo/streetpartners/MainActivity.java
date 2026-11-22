@@ -968,18 +968,45 @@ public class MainActivity extends Activity {
 
     // PIX
 
-    private void abrirPix() {
+   
+private void abrirPix() {
 
+    if (valorCorrida <= 0) {
         new AlertDialog.Builder(this)
             .setTitle("Pagamento via Pix")
             .setMessage(
-                "Configure a chave Pix oficial do aplicativo " +
-                "antes de receber pagamentos.\n\n" +
-                "Valor da última estimativa: R$ " +
-                String.format(Locale.US, "%.2f", valorCorrida)
+                "Primeiro, calcule uma rota e solicite uma corrida."
             )
             .setPositiveButton("OK", null)
             .show();
+        return;
+    }
+
+    double valorDistancia = distanciaKm * VALOR_KM;
+    double valorTempo = duracaoMin * VALOR_MINUTO;
+
+    String resumo = String.format(
+        Locale.forLanguageTag("pt-BR"),
+        "Resumo do pagamento:\n\n" +
+        "Taxa inicial: R$ 7,70\n" +
+        "Distância (%.2f km): R$ %.2f\n" +
+        "Tempo (%.0f min): R$ %.2f\n\n" +
+        "TOTAL PARA PAGAMENTO: R$ %.2f\n\n" +
+        "Use esse valor ao realizar o Pix.",
+        distanciaKm,
+        valorDistancia,
+        duracaoMin,
+        valorTempo,
+        valorCorrida
+    );
+
+    new AlertDialog.Builder(this)
+        .setTitle("Pagamento via Pix")
+        .setMessage(resumo)
+        .setPositiveButton("OK", null)
+        .show();
+}
+
     }
 
     // HISTÓRICO
