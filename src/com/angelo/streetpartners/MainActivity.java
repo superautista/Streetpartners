@@ -31,6 +31,9 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Scanner;
 import java.util.Locale;
+import java.util.Calendar;
+import java.util.GregorianCalendar;
+import java.util.TimeZone;
 
 public class MainActivity extends Activity {
 
@@ -41,8 +44,8 @@ public class MainActivity extends Activity {
         "sb_publishable_wzEU2j3tsiNs15WAqvmFOw_QElCYbRu";
 
     private static final double TARIFA_INICIAL = 7.70;
-    private static final double VALOR_KM = 1.50;
-    private static final double VALOR_MINUTO = 0.30;
+    private static final double VALOR_KM = 2.20;
+    private static final double VALOR_MINUTO = 0.75;
 
     private String accessToken = "";
     private String usuarioId = "";
@@ -317,6 +320,116 @@ public class MainActivity extends Activity {
             .setNeutralButton("Cancelar", null)
             .show();
     }
+    
+private boolean deveUsarBandeira2() {
+
+    Calendar agora = Calendar.getInstance(
+        TimeZone.getTimeZone("America/Sao_Paulo")
+    );
+
+    int hora = agora.get(Calendar.HOUR_OF_DAY);
+
+    boolean horarioNoturno = hora >= 23 || hora < 5;
+    boolean domingo =
+        agora.get(Calendar.DAY_OF_WEEK) == Calendar.SUNDAY;
+
+    return horarioNoturno || domingo || isFeriadoLins(agora);
+}
+
+private boolean isFeriadoLins(Calendar data) {
+
+    int ano = data.get(Calendar.YEAR);
+    int mes = data.get(Calendar.MONTH) + 1;
+    int dia = data.get(Calendar.DAY_OF_MONTH);
+
+    // Feriados nacionais
+    if (mesDia(data, 1, 1) ||
+        mesDia(data, 4, 21) ||
+        mesDia(data, 5, 1) ||
+        mesDia(data, 9, 7) ||
+        mesDia(data, 10, 12) ||
+        mesDia(data, 11, 2) ||
+        mesDia(data, 11, 15) ||
+        mesDia(data, 11, 20) ||
+        mesDia(data, 12, 25)) {
+        return true;
+    }
+
+    // Feriado estadual de São Paulo
+    if (mesDia(data, 7, 9)) {
+        return true;
+    }
+
+    // Feriado municipal de Lins: Padroeiro
+    if (mesDia(data, 6, 13)) {
+        return true;
+    }
+
+    // Feriados móveis de Lins
+    Calendar pascoa = calcularPascoa(ano);
+
+    Calendar carnaval = (Calendar) pascoa.clone();
+    carnaval.add(Calendar.DAY_OF_MONTH, -47);
+
+    Calendar sextaPaixao = (Calendar) pascoa.clone();
+    sextaPaixao.add(Calendar.DAY_OF_MONTH, -2);
+
+    Calendar corpusChristi = (Calendar) pascoa.clone();
+    corpusChristi.add(Calendar.DAY_OF_MONTH, 60);
+
+    return mesmaData(data, carnaval)
+        || mesmaData(data, sextaPaixao)
+        || mesmaData(data, corpusChristi);
+}
+
+private boolean mesDia(Calendar data, int mes, int dia) {
+    return data.get(Calendar.MONTH) == mes - 1
+        && data.get(Calendar.DAY_OF_MONTH) == dia;
+}
+
+private boolean mesmaData(Calendar a, Calendar b) {
+    return a.get(Calendar.YEAR) == b.get(Calendar.YEAR)
+        && a.get(Calendar.DAY_OF_YEAR) == b.get(Calendar.DAY_OF_YEAR);
+}
+
+private Calendar calcularPascoa(int ano) {
+
+    int a = ano % 19;
+    int b = ano / 100;
+    int c = ano % 100;
+    int d = b / 4;
+    int e = b % 4;
+    int f = (b + 8) / 25;
+    int g = (b - f + 1) / 3;
+    int h = (19 * a + b - d - g + 15) % 30;
+    int i = c / 4;
+    int k = c % 4;
+    int l = (32 + 2 * e + 2 * i - h - k) % 7;
+    int m = (a + 11 * h + 22 * l) / 451;
+
+    int mes = (h + l - 7 * m + 114) / 31;
+    int dia = ((h + l - 7 * m + 114) % 31) + 1;
+
+    Calendar pascoa = new GregorianCalendar(
+        TimeZone.getTimeZone("America/Sao_Paulo")
+    );
+
+    pascoa.clear();
+    pascoa.set(ano, mes - 1, dia, 12, 0, 0);
+
+    return pascoa;
+}
+
+atualizarBandeira();
+
+valorCorrida = TARIFA_INICIAL
+    + (distanciaKm * VALOR_KM)
+    + (duracaoMin * valorMinutoAplicado);
+
+valorCorrida =
+    Math.round(valorCorrida * 100.0) / 100.0;
+    }
+}
 
     // GPS
 
@@ -623,20 +736,21 @@ public class MainActivity extends Activity {
     private void mostrarEstimativa() {
 
         String resumo = String.format(
-            Locale.forLanguageTag("pt-BR"),
-            "Distância: %.2f km\n" +
-            "Duração estimada: %.0f minutos\n\n" +
-            "Tarifa inicial: R$ 7,70\n" +
-            "Distância: R$ %.2f\n" +
-            "Tempo: R$ %.2f\n\n" +
-            "TOTAL ESTIMADO: R$ %.2f",
-            distanciaKm,
-            duracaoMin,
-            distanciaKm * VALOR_KM,
-            duracaoMin * VALOR_MINUTO,
-            valorCorrida
-        );
-
+    Locale.forLanguageTag("pt-BR"),
+    "Bandeira %d\n" +
+    "Distância: %.2f km\n" +
+    "Duração: %.0f minutos\n\n" +
+    "Taxa inicial: R$ 7,70\n" +
+    "Distância: R$ %.2f\n" +
+    "Tempo: R$ %.2f\n\n" +
+    "TOTAL: R$ %.2f",
+    bandeiraAplicada,
+    distanciaKm,
+    duracaoMin,
+    distanciaKm * VALOR_KM,
+    duracaoMin * valorMinutoAplicado,
+    valorCorrida
+);
         txtStatus.setText(resumo);
 
         new AlertDialog.Builder(this)
