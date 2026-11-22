@@ -144,6 +144,22 @@ usuarioId = db.getString("usuario_id", "");
                 }
 
                 int codigo = conexao.getResponseCode();
+             java.io.InputStream respostaServidor =
+    (codigo >= 200 && codigo < 300)
+    ? conexao.getInputStream()
+    : conexao.getErrorStream();
+
+java.util.Scanner leitor =
+    new java.util.Scanner(respostaServidor).useDelimiter("\\A");
+
+String mensagemServidor =
+    leitor.hasNext() ? leitor.next() : "";
+
+leitor.close();
+
+if (codigo < 200 || codigo >= 300) {
+    throw new Exception("HTTP " + codigo + ": " + mensagemServidor);
+}
 
                 InputStream entrada = codigo >= 200 && codigo < 300
                         ? conexao.getInputStream()
@@ -196,8 +212,7 @@ usuarioId = db.getString("usuario_id", "");
 
                     Toast.makeText(
                             MainActivity.this,
-                            "Erro de conexão: " + e.getMessage(),
-                            Toast.LENGTH_LONG
+                            "Erro ao registrar: " + e.getMessage()",                           Toast.LENGTH_LONG
                     ).show();
                 });
 
