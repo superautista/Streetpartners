@@ -41,6 +41,14 @@ public class MainActivity extends Activity {
     private SharedPreferences db;
 
     private static final double VALOR_CORRIDA = 15.50;
+    private static final String SUPABASE_URL =
+        "https://vxsxjddaswcgnknolpwz.supabase.co";
+
+private static final String SUPABASE_KEY =
+        "sb_publishable_wzEU2j3tsiNs15WAqvmFOw_QElCYbRu";
+
+private String accessToken = "";
+private String usuarioId = "";
     private static final String CHAVE_PIX = "14988376670";
     private static final String NOME_RECEBEDOR = "ANGELO SILVA";
     private static final String CIDADE = "GETULINA";
