@@ -149,9 +149,13 @@ usuarioId = db.getString("usuario_id", "");
     ? conexao.getInputStream()
     : conexao.getErrorStream();
 
-java.util.Scanner leitor =
+java.util.Scanner scannerErro =
     new java.util.Scanner(respostaServidor).useDelimiter("\\A");
 
+String mensagemServidor =
+    scannerErro.hasNext() ? scannerErro.next() : "";
+
+scannerErro.close();
 String mensagemServidor =
     leitor.hasNext() ? leitor.next() : "";
 
