@@ -1,0 +1,38 @@
+
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- Fundo azul escuro -->
+    <path
+        android:fillColor="#101B2D"
+        android:pathData="M0,0h108v108h-108z"/>
+
+    <!-- Pino de localização -->
+    <path
+        android:fillColor="#00D5E8"
+        android:pathData="M54,13C39,13 28,24 28,39c0,19 26,45 26,45s26,-26 26,-45C80,24 69,13 54,13z"/>
+
+    <!-- Centro do pino -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M54,25a14,14 0,1 0,0 28a14,14 0,1 0,0 -28"/>
+
+    <!-- Carro -->
+    <path
+        android:fillColor="#101B2D"
+        android:pathData="M34,59h40c4,0 7,3 7,7v11h-54v-11c0,-4 3,-7 7,-7z"/>
+
+    <!-- Teto do carro -->
+    <path
+        android:fillColor="#00D5E8"
+        android:pathData="M39,59l6,-11h18l6,11z"/>
+
+    <!-- Rodas -->
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M34,73a5,5 0,1 0,0 10a5,5 0,1 0,0 -10M74,73a5,5 0,1 0,0 10a5,5 0,1 0,0 -10"/>
+
+</vector>
